@@ -1,0 +1,259 @@
+[
+  {
+    "id": "pbc_madkusin_citas_28224",
+    "name": "citas",
+    "type": "base",
+    "system": false,
+    "schema": [
+      {
+        "id": "fld_nombre",
+        "name": "nombre",
+        "type": "text",
+        "system": false,
+        "required": true,
+        "presentable": true,
+        "unique": false,
+        "options": {
+          "min": 2,
+          "max": 120,
+          "pattern": ""
+        }
+      },
+      {
+        "id": "fld_email",
+        "name": "email",
+        "type": "email",
+        "system": false,
+        "required": true,
+        "presentable": true,
+        "unique": false,
+        "options": {
+          "exceptDomains": [],
+          "onlyDomains": []
+        }
+      },
+      {
+        "id": "fld_direccion",
+        "name": "direccion",
+        "type": "text",
+        "system": false,
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": 4,
+          "max": 250,
+          "pattern": ""
+        }
+      },
+      {
+        "id": "fld_codigo_postal",
+        "name": "codigo_postal",
+        "type": "text",
+        "system": false,
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": 5,
+          "max": 5,
+          "pattern": "^28224$"
+        }
+      },
+      {
+        "id": "fld_modalidad",
+        "name": "modalidad",
+        "type": "select",
+        "system": false,
+        "required": true,
+        "presentable": true,
+        "unique": false,
+        "options": {
+          "maxSelect": 1,
+          "values": [
+            "in_situ",
+            "recogida"
+          ]
+        }
+      },
+      {
+        "id": "fld_num_cuchillos",
+        "name": "num_cuchillos",
+        "type": "number",
+        "system": false,
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": 1,
+          "max": 50,
+          "noDecimal": true
+        }
+      },
+      {
+        "id": "fld_duracion_minutos",
+        "name": "duracion_minutos",
+        "type": "number",
+        "system": false,
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": 20,
+          "max": 240,
+          "noDecimal": true
+        }
+      },
+      {
+        "id": "fld_tiene_enchufe_15m",
+        "name": "tiene_enchufe_15m",
+        "type": "bool",
+        "system": false,
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "id": "fld_confirma_filo_liso",
+        "name": "confirma_filo_liso",
+        "type": "bool",
+        "system": false,
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "id": "fld_fecha",
+        "name": "fecha",
+        "type": "text",
+        "system": false,
+        "required": true,
+        "presentable": true,
+        "unique": false,
+        "options": {
+          "min": 10,
+          "max": 10,
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        }
+      },
+      {
+        "id": "fld_hora_inicio",
+        "name": "hora_inicio",
+        "type": "text",
+        "system": false,
+        "required": true,
+        "presentable": true,
+        "unique": false,
+        "options": {
+          "min": 5,
+          "max": 5,
+          "pattern": "^(10|11|12):[0-5]\\d$"
+        }
+      },
+      {
+        "id": "fld_hora_fin",
+        "name": "hora_fin",
+        "type": "text",
+        "system": false,
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": 5,
+          "max": 5,
+          "pattern": ""
+        }
+      },
+      {
+        "id": "fld_notas",
+        "name": "notas",
+        "type": "text",
+        "system": false,
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": null,
+          "max": 500,
+          "pattern": ""
+        }
+      },
+      {
+        "id": "fld_estado",
+        "name": "estado",
+        "type": "select",
+        "system": false,
+        "required": true,
+        "presentable": true,
+        "unique": false,
+        "options": {
+          "maxSelect": 1,
+          "values": [
+            "confirmada",
+            "en_proceso",
+            "completada",
+            "cancelada"
+          ]
+        }
+      },
+      {
+        "id": "fld_origen",
+        "name": "origen",
+        "type": "select",
+        "system": false,
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "maxSelect": 1,
+          "values": [
+            "web_form",
+            "voice_assistant_gemini",
+            "voice_assistant_elevenlabs",
+            "voice_assistant_hybrid"
+          ]
+        }
+      },
+      {
+        "id": "fld_gcal_event_id",
+        "name": "gcal_event_id",
+        "type": "text",
+        "system": false,
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": null,
+          "max": 120,
+          "pattern": ""
+        }
+      },
+      {
+        "id": "fld_telegram_chat_id",
+        "name": "telegram_chat_id",
+        "type": "text",
+        "system": false,
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": null,
+          "max": 64,
+          "pattern": ""
+        }
+      }
+    ],
+    "indexes": [
+      "CREATE INDEX idx_citas_fecha_hora ON citas (fecha, hora_inicio)",
+      "CREATE INDEX idx_citas_email ON citas (email)"
+    ],
+    "listRule": "@request.auth.id != ''",
+    "viewRule": "@request.auth.id != ''",
+    "createRule": "",
+    "updateRule": "@request.auth.id != ''",
+    "deleteRule": "@request.auth.id != ''",
+    "options": {}
+  }
+]
