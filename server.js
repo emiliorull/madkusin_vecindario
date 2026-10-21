@@ -192,8 +192,8 @@ async function handleTelegramWebhook(req, res) {
 
     if (chatId && TELEGRAM_BOT_TOKEN) {
       let replyText =
-        `🔪 ¡Hola ${firstName}! Soy el bot oficial del taller de afilado de *Kusin* en el *CP 28224 (Pozuelo)*.\n\n` +
-        `Puedes reservar tu cita para afilar *gratis tu peor cuchillo de acero de filo liso* en:\n👉 https://vecindario.madkusin.com`;
+        `🔪 ¡Hola ${firstName}! Soy el bot oficial del taller de afilado de *Emil* en el *CP 28224 (Pozuelo)*.\n\n` +
+        `Puedes reservar tu cita (*AFILO GRATIS TU PEOR CUCHILLO*) en:\n👉 https://vecindario.madkusin.com`;
 
       if (text.startsWith('/start cita_')) {
         const citaId = text.replace('/start cita_', '').trim();
@@ -201,9 +201,9 @@ async function handleTelegramWebhook(req, res) {
           `✅ *¡Aviso de cita activado, ${firstName}!*\n\n` +
           `Hemos vinculado tu reserva *#${citaId}* con este chat de Telegram sin necesidad de pedirte tu número de móvil.\n\n` +
           `📍 *Zona:* Exclusiva CP 28224 (Pozuelo)\n` +
-          `💧 *Método Kusin:* Afilado en banda con refrigeración por agua y pulido en cuero (*strop*).\n` +
-          `🎁 *Recuerda:* Ten preparado tu peor cuchillo de cocina de acero de filo liso (lo afilamos 100 % gratis y sin compromiso).\n\n` +
-          `Te escribiremos por aquí para recordarte la visita de Kusin.`;
+          `⚙️ *Método de Emil:* Afilado profesional de alta precisión con afilador de banda y strop, respetuoso con el temple del acero y sin sobrecalentar nunca la hoja.\n` +
+          `🎁 *Recuerda:* Ten preparado tu peor cuchillo de acero de filo liso (lo afilamos 100 % gratis y sin compromiso).\n\n` +
+          `Te escribiremos por aquí para recordarte la visita de Emil.`;
       }
 
       await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {

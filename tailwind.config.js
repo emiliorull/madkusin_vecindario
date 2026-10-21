@@ -8,26 +8,29 @@ export default {
     extend: {
       colors: {
         stone: {
-          50: '#FAF7F2',
-          100: '#F3EDE2',
-          200: '#E6DCCB',
-          800: '#292524',
-          900: '#1C1917',
-          950: '#0F0D0C'
+          50: '#F8F4EC',   // Pergamino suave / Lino crudo claro
+          100: '#EFE8D8',  // Lino crudo natural
+          200: '#DFD3BC',  // Piedra de amolar clara / Papel artesano
+          300: '#C8B89A',  // Cuero claro / Piedra media
+          700: '#443E38',  // Carbón templado
+          800: '#2A2522',  // Acero al carbono oscuro
+          900: '#1B1816',  // Carbón piedra suave
+          950: '#110F0D'   // Fragua profunda
         },
         kusin: {
-          terra: '#C2410C',
-          terraDark: '#9A3412',
-          amber: '#D97706',
-          water: '#0284C7',
-          waterLight: '#E0F2FE',
-          leather: '#78350F',
-          sage: '#15803D'
+          terra: '#991B1B',      // Rojo lacre artesanal (tono MAD del logo)
+          terraDark: '#7F1D1D',  // Rojo óxido templado
+          amber: '#B45309',      // Cuero tostado / Ámbar de taller
+          leather: '#78350F',    // Cuero de asentador (strop)
+          steel: '#3A3532',      // Acero al carbono
+          whetstone: '#575049',  // Piedra de amolar
+          sage: '#166534'        // Verde taller clásico
         }
       },
       fontFamily: {
         sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
         serif: ['"Fraunces"', 'Georgia', 'serif'],
+        display: ['"Space Grotesk"', '"Plus Jakarta Sans"', 'sans-serif'],
       },
       keyframes: {
         pulseWave: {

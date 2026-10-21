@@ -163,7 +163,7 @@ export async function bookAppointment(payload) {
     return {
       ok: false,
       error:
-        'Para el afilado in situ a domicilio es imprescindible disponer de un enchufe accesible a menos de 15 metros (Kusin lleva su propia alargadera de 15 m). Si no tienes enchufe cercano, elige la modalidad de Recogida y Entrega (24/48h).'
+        'Para el afilado in situ a domicilio es imprescindible disponer de una toma de corriente cercana a menos de 15 metros (Emil lleva una alargadera profesional de 15 m). Si no tienes enchufe cercano, elige la modalidad de Recogida y Entrega (24/48h).'
     };
   }
 

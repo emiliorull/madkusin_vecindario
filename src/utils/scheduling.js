@@ -87,14 +87,14 @@ export function validatePostalCode(postalCode) {
       valid: false,
       normalized,
       message:
-        '¡Muchas gracias por tu interés! En esta fase vecinal, el servicio a domicilio de Kusin y la prueba gratuita de tu peor cuchillo están activos exclusivamente en el código postal 28224 (Pozuelo de Alarcón).'
+        '¡Muchas gracias por tu interés! En esta fase vecinal, el servicio a domicilio de Emil y el afilado gratuito de tu peor cuchillo están activos exclusivamente en el código postal 28224 (Pozuelo de Alarcón).'
     };
   }
 
   return {
     valid: true,
     normalized: ALLOWED_POSTAL_CODE,
-    message: 'Código postal 28224 verificado: estás dentro del vecindario de servicio de Kusin.'
+    message: 'Código postal 28224 verificado: estás dentro de la zona de servicio de Emil en Pozuelo.'
   };
 }
 
@@ -137,7 +137,7 @@ export function validateOperatingDate(dateStr) {
       valid: false,
       dayOfWeek,
       reason:
-        'Kusin pasa por el vecindario de Lunes a Viernes de 10:00 a 13:00. Por favor, selecciona un día laborable (L-V).'
+        'Emil pasa por el vecindario de Lunes a Viernes de 10:00 a 13:00. Por favor, selecciona un día laborable (L-V).'
     };
   }
 

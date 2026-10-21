@@ -150,7 +150,7 @@ export default function VoiceAssistantModal({
             </div>
             <div>
               <h2 id="voice-modal-title" className="font-serif font-bold text-lg text-white">
-                Asistente de Cita · Taller de Kusin (28224)
+                Kusin · Asistente IA del Taller de Emil (28224)
               </h2>
               <p className="text-xs text-stone-400">
                 {providerInfo.provider === 'gemini'
@@ -209,10 +209,10 @@ export default function VoiceAssistantModal({
             {isMuted
               ? 'Micrófono silenciado. Pulsa "Activar micro" o escribe abajo.'
               : status === 'speaking'
-              ? 'El asistente de Kusin está hablando...'
+              ? 'Kusin (asistente del taller de Emil) está hablando...'
               : status === 'thinking'
-              ? 'Consultando disponibilidad y reglas del taller...'
-              : 'Habla con naturalidad o usa las respuestas rápidas de abajo'}
+              ? 'Consultando disponibilidad y reglas del taller de Emil...'
+              : 'Habla con naturalidad con Kusin o usa las respuestas rápidas de abajo'}
           </p>
         </div>
 
@@ -236,7 +236,7 @@ export default function VoiceAssistantModal({
                   <p>{item.text}</p>
                 </div>
                 <span className="text-[11px] text-stone-500 mt-1 px-1">
-                  {item.role === 'user' ? 'Tú' : 'Asistente de Kusin'} · {item.timestamp}
+                  {item.role === 'user' ? 'Tú' : 'Kusin (Asistente de Emil)'} · {item.timestamp}
                 </span>
               </div>
             ))}

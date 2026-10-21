@@ -141,7 +141,7 @@ export default function BookingSection({
 
     if (modalidad === 'in_situ' && !tieneEnchufe15m) {
       setFormError(
-        'Para el afilado in situ en tu domicilio es obligatorio confirmar que dispones de un enchufe accesible a menos de 15 metros (Kusin lleva su propia alargadera de 15 m). Si no tienes enchufe cerca, selecciona "Recogida y entrega (24/48h)".'
+        'Para el afilado in situ en tu domicilio es obligatorio confirmar que dispones de una toma de corriente cercana a menos de 15 metros (Emil lleva una alargadera profesional de 15 m). Si no tienes enchufe cerca, selecciona "Recogida y entrega (24/48h)".'
       );
       return;
     }
@@ -282,7 +282,7 @@ export default function BookingSection({
                   </h3>
                   <p className="text-sm text-sky-100/90 mt-1 leading-relaxed">
                     Nuestro bot de Telegram vincula únicamente el código de tu cita (
-                    <code>cita_{confirmedAppointment.cita_id}</code>) para avisarte cuando Kusin esté
+                    <code>cita_{confirmedAppointment.cita_id}</code>) para avisarte cuando Emil esté
                     de camino, sin revelar nunca tu número de teléfono.
                   </p>
                 </div>
@@ -323,19 +323,19 @@ export default function BookingSection({
   // FORMULARIO INTERACTIVO EN 3 PASOS
   // ==========================================================================
   return (
-    <section id="reservar" className="py-16 sm:py-24 bg-stone-100/70">
+    <section id="reservar" className="py-16 sm:py-24 bg-stone-100/80">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 space-y-10">
         {/* Cabecera del Módulo de Reserva */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-100 text-amber-950 border border-amber-300">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-stone-200 text-stone-900 border border-stone-300">
               <Calendar className="w-3.5 h-3.5 text-kusin-terra" />
-              Agenda Vecinal · Lunes a Viernes de 10:00 a 13:00
+              Agenda del Taller · Lunes a Viernes de 10:00 a 13:00
             </span>
             <h2 className="font-serif text-3xl sm:text-4xl font-bold text-stone-900 mt-2">
-              Reserva tu cita con Kusin en 3 pasos
+              Reserva tu cita con Emil en 3 pasos
             </h2>
-            <p className="text-stone-700 mt-1">
+            <p className="text-stone-800 mt-1">
               O si lo prefieres, pulsa en el{' '}
               <button
                 type="button"
@@ -343,7 +343,7 @@ export default function BookingSection({
                 className="inline-flex items-center gap-1 font-bold text-kusin-terra underline hover:text-kusin-terraDark"
               >
                 <Mic className="w-4 h-4" />
-                Asistente de cita por voz
+                Asistente de cita con Kusin (IA)
               </button>{' '}
               y te agendamos conversando.
             </p>
@@ -354,8 +354,8 @@ export default function BookingSection({
           {/* ================================================================
               PASO 1: CONFIGURACIÓN DEL SERVICIO
              ================================================================ */}
-          <div className="rounded-3xl bg-white border border-stone-200 shadow-sm p-6 sm:p-8 space-y-6">
-            <div className="flex items-center gap-3 border-b border-stone-100 pb-4">
+          <div className="rounded-3xl bg-[#FBF9F5] border-2 border-stone-300 shadow-sm p-6 sm:p-8 space-y-6">
+            <div className="flex items-center gap-3 border-b border-stone-200 pb-4">
               <span className="w-8 h-8 rounded-xl bg-stone-900 text-amber-400 font-bold text-sm flex items-center justify-center">
                 1
               </span>
@@ -363,7 +363,7 @@ export default function BookingSection({
                 <h3 className="text-lg sm:text-xl font-bold text-stone-900">
                   Configuración del servicio
                 </h3>
-                <p className="text-xs sm:text-sm text-stone-600">
+                <p className="text-xs sm:text-sm text-stone-700">
                   Elige modalidad, cantidad aproximada de cuchillos de filo liso y confirma los
                   requisitos técnicos.
                 </p>
@@ -377,15 +377,15 @@ export default function BookingSection({
                 onClick={() => handleModalidadSwitch('in_situ')}
                 className={`text-left p-5 rounded-2xl border-2 transition-all flex items-start gap-4 ${
                   modalidad === 'in_situ'
-                    ? 'border-kusin-terra bg-amber-50/60 shadow-sm'
-                    : 'border-stone-200 bg-stone-50/50 hover:border-stone-300'
+                    ? 'border-kusin-terra bg-amber-50/70 shadow-sm'
+                    : 'border-stone-300 bg-stone-50/70 hover:border-stone-400'
                 }`}
               >
                 <div
                   className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${
                     modalidad === 'in_situ'
                       ? 'bg-kusin-terra text-white'
-                      : 'bg-stone-200 text-stone-700'
+                      : 'bg-stone-200 text-stone-800'
                   }`}
                 >
                   <Plug className="w-5 h-5" />
@@ -393,12 +393,12 @@ export default function BookingSection({
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-stone-900 text-base">
-                      Afilado in situ en mi domicilio
+                      Afilado In Situ (a domicilio)
                     </span>
                   </div>
-                  <p className="text-xs sm:text-sm text-stone-600">
-                    Kusin afila en tu casa (requiere enchufe a &lt;15m). Pruebas gratis tu peor
-                    cuchillo en el acto.
+                  <p className="text-xs sm:text-sm text-stone-700">
+                    Emil acude a tu casa (necesita toma de corriente a &lt;15m). Afila gratis tu peor
+                    cuchillo y te indica la tarifa de viva voz para el resto.
                   </p>
                 </div>
               </button>
@@ -408,15 +408,15 @@ export default function BookingSection({
                 onClick={() => handleModalidadSwitch('recogida')}
                 className={`text-left p-5 rounded-2xl border-2 transition-all flex items-start gap-4 ${
                   modalidad === 'recogida'
-                    ? 'border-sky-600 bg-sky-50/60 shadow-sm'
-                    : 'border-stone-200 bg-stone-50/50 hover:border-stone-300'
+                    ? 'border-kusin-leather bg-stone-100 shadow-sm'
+                    : 'border-stone-300 bg-stone-50/70 hover:border-stone-400'
                 }`}
               >
                 <div
                   className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${
                     modalidad === 'recogida'
-                      ? 'bg-sky-600 text-white'
-                      : 'bg-stone-200 text-stone-700'
+                      ? 'bg-kusin-leather text-white'
+                      : 'bg-stone-200 text-stone-800'
                   }`}
                 >
                   <Truck className="w-5 h-5" />
@@ -424,19 +424,19 @@ export default function BookingSection({
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-stone-900 text-base">
-                      Recogida y entrega (24/48h)
+                      Recogida y Entrega (24/48h)
                     </span>
                   </div>
-                  <p className="text-xs sm:text-sm text-stone-600">
-                    Recogemos tu lote y lo devolvemos en 24/48h. Si al probar tu peor cuchillo gratis
-                    no te convence, no pagas nada.
+                  <p className="text-xs sm:text-sm text-stone-700">
+                    Se recogen tus cuchillos, se afila gratis el peor en el taller y se devuelve en
+                    24/48h. Pruebas primero tu peor cuchillo: si no te convence, no hay compromiso.
                   </p>
                 </div>
               </button>
             </div>
 
             {/* Selector Numérico de Cuchillos de acero de filo liso */}
-            <div className="p-5 rounded-2xl bg-stone-50 border border-stone-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="p-5 rounded-2xl bg-stone-100/80 border border-stone-300 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="space-y-1">
                 <label
                   htmlFor="num-cuchillos-input"
@@ -444,11 +444,10 @@ export default function BookingSection({
                 >
                   Número estimado de cuchillos de acero de filo liso
                 </label>
-                <p className="text-xs sm:text-sm text-stone-600 flex items-center gap-1.5">
+                <p className="text-xs sm:text-sm text-stone-700 flex items-center gap-1.5">
                   <Sparkles className="w-4 h-4 text-kusin-terra shrink-0" />
                   <span>
-                    Recuerda: <strong>el primero (tu peor cuchillo) es 100 % gratis</strong> y sin
-                    compromiso.
+                    Recuerda: <strong>AFILO GRATIS TU PEOR CUCHILLO</strong> sin ningún compromiso.
                   </span>
                 </p>
               </div>
@@ -489,7 +488,7 @@ export default function BookingSection({
             {/* Checkboxes Obligatorios */}
             <div className="space-y-3 pt-1">
               {modalidad === 'in_situ' && (
-                <label className="flex items-start gap-3.5 p-4 rounded-2xl border-2 border-amber-300 bg-amber-50/60 cursor-pointer hover:bg-amber-50 transition-colors">
+                <label className="flex items-start gap-3.5 p-4 rounded-2xl border-2 border-amber-300 bg-amber-50/70 cursor-pointer hover:bg-amber-50 transition-colors">
                   <input
                     type="checkbox"
                     checked={tieneEnchufe15m}
@@ -498,13 +497,14 @@ export default function BookingSection({
                     required
                   />
                   <span className="text-sm sm:text-base text-stone-900 font-medium">
-                    <strong>Obligatorio para Afilado In Situ:</strong> Confirmo que dispongo de un
-                    enchufe accesible a menos de 15 metros (Kusin lleva alargadera de 15 m).
+                    <strong>Requisito técnico (Afilado In Situ):</strong> Confirmo que dispongo de
+                    una toma de corriente cercana a menos de 15 metros (Emil lleva una alargadera
+                    profesional de 15 m).
                   </span>
                 </label>
               )}
 
-              <label className="flex items-start gap-3.5 p-4 rounded-2xl border border-stone-300 bg-stone-50/70 cursor-pointer hover:bg-stone-100/70 transition-colors">
+              <label className="flex items-start gap-3.5 p-4 rounded-2xl border border-stone-300 bg-stone-100/70 cursor-pointer hover:bg-stone-100 transition-colors">
                 <input
                   type="checkbox"
                   checked={confirmaFiloLiso}
@@ -513,8 +513,8 @@ export default function BookingSection({
                   required
                 />
                 <span className="text-sm sm:text-base text-stone-900 font-medium">
-                  Confirmo que son <strong>cuchillos de acero de filo liso</strong> (sin sierra, ni
-                  cerámica, ni tijeras).
+                  Confirmo que son <strong>solo cuchillos de acero de filo liso</strong> (quedan
+                  excluidos cuchillos de sierra, cerámicos, tijeras, hachas o sierras).
                 </span>
               </label>
             </div>
@@ -523,7 +523,7 @@ export default function BookingSection({
           {/* ================================================================
               PASO 2: CALENDARIO DE DISPONIBILIDAD EN TIEMPO REAL
              ================================================================ */}
-          <div className="rounded-3xl bg-white border border-stone-200 shadow-sm p-6 sm:p-8 space-y-6">
+          <div className="rounded-3xl bg-[#FBF9F5] border-2 border-stone-300 shadow-sm p-6 sm:p-8 space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-100 pb-4">
               <div className="flex items-center gap-3">
                 <span className="w-8 h-8 rounded-xl bg-stone-900 text-amber-400 font-bold text-sm flex items-center justify-center">
@@ -672,7 +672,7 @@ export default function BookingSection({
           {/* ================================================================
               PASO 3: DATOS DE CONTACTO SIN TELÉFONO
              ================================================================ */}
-          <div className="rounded-3xl bg-white border border-stone-200 shadow-sm p-6 sm:p-8 space-y-6">
+          <div className="rounded-3xl bg-[#FBF9F5] border-2 border-stone-300 shadow-sm p-6 sm:p-8 space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-stone-100 pb-4">
               <div className="flex items-center gap-3">
                 <span className="w-8 h-8 rounded-xl bg-stone-900 text-amber-400 font-bold text-sm flex items-center justify-center">

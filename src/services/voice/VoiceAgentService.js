@@ -606,7 +606,7 @@ export class HybridLocalVoiceProvider extends IVoiceProvider {
       lower.includes('cobráis')
     ) {
       await this.speakAndTranscribe(
-        'Primero Kusin afila totalmente gratis tu peor cuchillo de acero de filo liso, sin ningún compromiso. Si eliges el afilado in situ en tu domicilio, al ver en el acto cómo corta, Kusin te indicará en persona la tarifa para el resto de cuchillos que decidas afilar. Y si prefieres recogida y entrega en 24 o 48 horas, al devolvértelos pruebas primero ese peor cuchillo gratis: si no te convence, no pagas absolutamente nada por el resto. ¿Vivís en el código postal 28224?'
+        'Primero Emil afila totalmente gratis tu peor cuchillo de acero de filo liso, sin ningún compromiso. Si eliges el afilado in situ en tu domicilio, si te gusta el resultado, Emil te indicará la tarifa de viva voz para el resto de cuchillos en el momento. Y si prefieres recogida y entrega en 24 o 48 horas, al entregártelos pruebas primero tu peor cuchillo: si no te convence, no hay ningún compromiso. ¿Vives en el código postal 28224?'
       );
       if (this.draft.step === 'awaiting_intent') {
         this.draft.step = 'cp';
@@ -624,7 +624,7 @@ export class HybridLocalVoiceProvider extends IVoiceProvider {
       lower.includes('hacha')
     ) {
       await this.speakAndTranscribe(
-        'Te aclaro un detalle importante: en el taller de Kusin solo afilamos cuchillos de cocina de acero de filo liso, usando afiladora de banda con refrigeración por agua y pulido en cuero strop. No afilamos cuchillos de sierra, ni de cerámica, ni tijeras, ni hachas. ¿Tienes cuchillos de acero de filo liso y vives en el 28224?'
+        'Te aclaro un detalle importante: en el taller de Emil realizamos un afilado profesional de alta precisión con afilador de banda y strop, absolutamente respetuoso con el temple del acero y diseñado para no sobrecalentar nunca la hoja. Por eso solo afilamos cuchillos de acero de filo liso: quedan excluidos cuchillos de sierra, cerámicos, tijeras, hachas o sierras. ¿Tienes cuchillos de acero de filo liso y vives en el 28224?'
       );
       if (this.draft.step === 'awaiting_intent') {
         this.draft.step = 'cp';
@@ -639,13 +639,13 @@ export class HybridLocalVoiceProvider extends IVoiceProvider {
           this.draft.codigo_postal = '28224';
           this.draft.step = 'modalidad';
           await this.speakAndTranscribe(
-            '¡Estupendo, vecino del 28224! Recuerda que solo afilamos cuchillos de acero de filo liso con refrigeración por agua y pulido en cuero strop. ¿Qué modalidad prefieres: afilado in situ en tu domicilio o recogida y entrega en 24 a 48 horas?'
+            '¡Estupendo, vecino del 28224! Emil realiza un afilado profesional de alta precisión con afilador de banda y strop, respetuoso con el temple del acero y diseñado para no sobrecalentar nunca la hoja, exclusivamente para cuchillos de acero de filo liso. ¿Qué modalidad prefieres: afilado in situ en tu domicilio o recogida y entrega en 24/48 horas?'
           );
           return;
         }
         this.draft.step = 'cp';
         await this.speakAndTranscribe(
-          '¡Genial! Kusin afila con sistema de banda refrigerado por agua y acabado en cuero strop, exclusivamente para cuchillos de acero de filo liso. Para empezar, ¿me confirmas que tu domicilio está en el código postal 28224 de Pozuelo?'
+          '¡Genial! Emil realiza un afilado profesional de alta precisión con afilador de banda y strop, absolutamente respetuoso con el temple del acero y diseñado para no sobrecalentar nunca la hoja, solo para cuchillos de acero de filo liso. Para empezar, ¿me confirmas que tu domicilio está en el código postal 28224 de Pozuelo?'
         );
         return;
       }
@@ -668,13 +668,13 @@ export class HybridLocalVoiceProvider extends IVoiceProvider {
           this.draft.codigo_postal = '28224';
           this.draft.step = 'modalidad';
           await this.speakAndTranscribe(
-            'Perfecto, código postal 28224 confirmado. ¿Qué modalidad prefieres: 1) Afilado in situ en tu casa, o 2) Recogida y entrega en 24/48 horas?'
+            'Perfecto, código postal 28224 confirmado. ¿Qué modalidad prefieres: 1) Afilado in situ en tu domicilio, o 2) Recogida y entrega en 24/48 horas?'
           );
           return;
         }
 
         await this.speakAndTranscribe(
-          'Disculpa, para continuar necesito confirmar que vives en el código postal 28224. ¿Es ese tu código postal?'
+          'Disculpa, este servicio vecinal de Emil es exclusivo para el código postal 28224 de Pozuelo de Alarcón. ¿Me confirmas que vives en el 28224?'
         );
         return;
       }
@@ -692,7 +692,7 @@ export class HybridLocalVoiceProvider extends IVoiceProvider {
           this.draft.tiene_enchufe_15m = false;
           this.draft.step = 'cuchillos';
           await this.speakAndTranscribe(
-            'Anotado: recogida y entrega en 24/48 horas (recuerda que al recibirlos pruebas primero tu peor cuchillo gratis y si no te convence no pagas nada por el resto). ¿Cuántos cuchillos de acero de filo liso quieres afilar aproximadamente?'
+            'Anotado: recogida y entrega en 24/48 horas (recuerda que se afila gratis tu peor cuchillo en el taller y, al entregártelo, lo pruebas primero sin ningún compromiso). ¿Cuántos cuchillos de acero de filo liso quieres afilar aproximadamente?'
           );
           return;
         }
@@ -708,7 +708,7 @@ export class HybridLocalVoiceProvider extends IVoiceProvider {
           this.draft.modalidad = 'in_situ';
           this.draft.step = 'enchufe';
           await this.speakAndTranscribe(
-            'Perfecto, afilado in situ en tu domicilio. Para trabajar con la afiladora refrigerada por agua, ¿confirmas que dispones de un enchufe accesible a menos de 15 metros? Kusin lleva su propia alargadera profesional de 15 metros.'
+            'Perfecto, afilado in situ en tu domicilio. Para conectar el afilador de banda profesional, Emil necesita una toma de corriente cercana (él lleva una alargadera profesional de 15 metros). ¿Confirmas que dispones de un enchufe a menos de 15 metros?'
           );
           return;
         }
@@ -730,7 +730,7 @@ export class HybridLocalVoiceProvider extends IVoiceProvider {
           this.draft.tiene_enchufe_15m = true;
           this.draft.step = 'cuchillos';
           await this.speakAndTranscribe(
-            'Estupendo, contamos con enchufe a menos de 15 metros. ¿Cuántos cuchillos de acero de filo liso tienes pensado afilar aproximadamente? Recuerda que el peor cuchillo es totalmente gratis.'
+            'Estupendo, contamos con toma de corriente a menos de 15 metros. ¿Cuántos cuchillos de acero de filo liso tienes pensado afilar aproximadamente? Recuerda que Emil afila gratis tu peor cuchillo.'
           );
           return;
         }
@@ -740,13 +740,13 @@ export class HybridLocalVoiceProvider extends IVoiceProvider {
           this.draft.tiene_enchufe_15m = false;
           this.draft.step = 'cuchillos';
           await this.speakAndTranscribe(
-            'Sin problema: como no hay enchufe a menos de 15 metros, pasamos a la modalidad de Recogida y Entrega en 24/48 horas. ¿Cuántos cuchillos de acero de filo liso quieres incluir aproximadamente?'
+            'Sin problema: como no hay toma de corriente a menos de 15 metros, pasamos a la modalidad de Recogida y Entrega en 24/48 horas. ¿Cuántos cuchillos de acero de filo liso quieres incluir aproximadamente?'
           );
           return;
         }
 
         await this.speakAndTranscribe(
-          '¿Me confirmas si tienes un enchufe a menos de 15 metros, o prefieres que cambiemos a recogida y entrega en 24/48h?'
+          '¿Me confirmas si tienes una toma de corriente a menos de 15 metros, o prefieres que cambiemos a recogida y entrega en 24/48h?'
         );
         return;
       }
@@ -793,7 +793,7 @@ export class HybridLocalVoiceProvider extends IVoiceProvider {
         this.draft.step = 'fecha_hora';
 
         await this.speakAndTranscribe(
-          `Perfecto, ${this.draft.num_cuchillos} cuchillos de filo liso (la visita durará unos ${availResult.duracion_minutos} minutos). He consultado la agenda de Kusin para el próximo día laborable (${this.draft.fecha}) y tengo libres las: ${slotTimes}. ¿Qué hora entre las 10:00 y las 13:00 te viene mejor?`
+          `Perfecto, ${this.draft.num_cuchillos} cuchillos de filo liso (la visita durará unos ${availResult.duracion_minutos} minutos). He consultado la agenda de Emil para el próximo día laborable (${this.draft.fecha}) y tengo libres las: ${slotTimes}. ¿Qué hora entre las 10:00 y las 13:00 te viene mejor?`
         );
         return;
       }
@@ -864,7 +864,7 @@ export class HybridLocalVoiceProvider extends IVoiceProvider {
           this.draft.step = 'completed';
           this.callbacks.onAppointmentBooked?.(bookingRes.appointment);
           await this.speakAndTranscribe(
-            `¡Listo! Tu cita con Kusin para el ${this.draft.fecha} a las ${this.draft.hora} ha quedado registrada y hemos enviado la confirmación a ${this.draft.email}. En la pantalla de tu navegador acaba de aparecer el resumen de tu cita junto con un botón azul por si deseas recibir un recordatorio en nuestro Bot de Telegram sin compartir tu teléfono.`
+            `¡Listo! Tu cita con Emil para el ${this.draft.fecha} a las ${this.draft.hora} ha quedado registrada y hemos enviado la confirmación a ${this.draft.email}. En la pantalla de tu navegador acaba de aparecer el resumen de tu cita junto con un botón para recibir un recordatorio en nuestro Bot de Telegram sin compartir tu teléfono.`
           );
           return;
         }
@@ -878,7 +878,7 @@ export class HybridLocalVoiceProvider extends IVoiceProvider {
 
       default: {
         await this.speakAndTranscribe(
-          'Tu cita ya está confirmada en pantalla. Si necesitas cualquier otra aclaración sobre el afilado en agua y cuero de Kusin, aquí estoy.'
+          'Tu cita ya está confirmada en pantalla. Si necesitas cualquier otra aclaración sobre el afilado de precisión con afilador de banda y strop del taller de Emil, aquí estoy.'
         );
       }
     }
