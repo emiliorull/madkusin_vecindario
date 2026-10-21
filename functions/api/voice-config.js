@@ -117,7 +117,8 @@ async function handleVoiceConfigRequest({ request, env }) {
     // OPCIÓN B: GEMINI MULTIMODAL LIVE API (Por defecto)
     // ========================================================================
     const geminiApiKey = env.GEMINI_API_KEY;
-    const geminiModel = env.GEMINI_LIVE_MODEL || 'models/gemini-2.0-flash-exp';
+    const geminiModel =
+      env.GEMINI_LIVE_MODEL || 'models/gemini-2.5-flash-native-audio-latest';
     const geminiVoiceName = env.GEMINI_VOICE_NAME || 'Aoede';
 
     if (!geminiApiKey || geminiApiKey === 'tu_clave_privada_gemini_aqui') {
@@ -134,7 +135,7 @@ async function handleVoiceConfigRequest({ request, env }) {
       );
     }
 
-    const wsEndpoint = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContent?key=${encodeURIComponent(
+    const wsEndpoint = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=${encodeURIComponent(
       geminiApiKey
     )}`;
 

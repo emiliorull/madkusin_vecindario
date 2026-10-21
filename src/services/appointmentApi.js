@@ -262,6 +262,37 @@ export async function bookAppointment(payload) {
     }
   }
 
+  // 2. Puente directo a PocketBase (/api/citas) si el webhook de n8n aún está inactivo
+  try {
+    const pbResponse = await fetch('/api/citas', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json'
+      },
+      body: JSON.stringify(requestBody)
+    });
+
+    if (pbResponse.ok) {
+      const pbData = await pbResponse.json();
+      if (pbData.ok && pbData.cita_id) {
+        return {
+          ok: true,
+          source: 'pocketbase_direct',
+          cita_id: pbData.cita_id,
+          telegram_deeplink: pbData.telegram_deeplink,
+          appointment: {
+            ...requestBody,
+            cita_id: pbData.cita_id,
+            telegram_deeplink: pbData.telegram_deeplink
+          }
+        };
+      }
+    }
+  } catch {
+    // Continúa al fallback local si se ejecuta fuera del servidor
+  }
+
   // Fallback de desarrollo: genera un ID único realista y el deeplink de Telegram
   const fallbackId = `28224_${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
   const telegramDeeplink = `https://t.me/${TELEGRAM_BOT_USERNAME}?start=cita_${fallbackId}`;

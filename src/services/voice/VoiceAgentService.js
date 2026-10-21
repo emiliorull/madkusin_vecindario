@@ -952,7 +952,21 @@ export class VoiceAgentService {
 
         if (config.provider === 'gemini' && config.mode === 'live' && config.wsEndpoint) {
           this.activeProviderName = 'gemini';
-          this.providerInstance = new GeminiLiveVoiceProvider(config, this.callbacks);
+          const fallbackToHybrid = async () => {
+            if (this.activeProviderName === 'hybrid') return;
+            this.activeProviderName = 'hybrid';
+            if (this.providerInstance) {
+              await this.providerInstance.disconnect();
+            }
+            this.providerInstance = new HybridLocalVoiceProvider(this.callbacks);
+            await this.providerInstance.connect();
+          };
+          this.providerInstance = new GeminiLiveVoiceProvider(config, {
+            ...this.callbacks,
+            onError: () => {
+              fallbackToHybrid();
+            }
+          });
           await this.providerInstance.connect();
           return { provider: 'gemini', mode: 'live' };
         }
