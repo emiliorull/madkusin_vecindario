@@ -20,15 +20,15 @@ export default function Header({ onOpenVoiceAssistant, confirmedAppointment }) {
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-serif font-bold text-base sm:text-lg text-stone-900 tracking-tight">
-                Emil · El Afilador del Siglo XXI
+                Taller de afilado a domicilio
               </span>
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-stone-200/90 text-stone-900 border border-stone-300">
                 <MapPin className="w-3 h-3 text-kusin-terra" />
-                CP 28224
+                Pozuelo de Alarcón
               </span>
             </div>
             <p className="text-xs text-stone-700 font-medium hidden sm:block">
-              Oficio artesanal y precisión técnica a domicilio · Pozuelo de Alarcón
+              Oficio artesanal y precisión técnica a domicilio
             </p>
           </div>
         </a>
@@ -36,7 +36,7 @@ export default function Header({ onOpenVoiceAssistant, confirmedAppointment }) {
         {/* Navegación central en escritorio */}
         <nav aria-label="Navegación principal" className="hidden md:flex items-center gap-6 text-sm font-semibold text-stone-800">
           <a href="#como-funciona" className="hover:text-kusin-terra transition-colors">
-            Modalidades (28224)
+            Modalidades
           </a>
           <a href="#que-afilamos" className="hover:text-kusin-terra transition-colors">
             Qué afilamos
@@ -65,7 +65,7 @@ export default function Header({ onOpenVoiceAssistant, confirmedAppointment }) {
             aria-label="Abrir Asistente de cita por voz con Kusin"
           >
             <Mic className="w-4 h-4 text-amber-400" />
-            <span>Asistente de cita (Kusin)</span>
+            <span>Asistente de cita [Kusin]</span>
             <span className="flex items-end gap-0.5 h-3.5 ml-0.5" aria-hidden="true">
               <span className="w-0.5 h-full bg-amber-400 rounded-full animate-pulse-wave-1" />
               <span className="w-0.5 h-full bg-amber-400 rounded-full animate-pulse-wave-2" />
