@@ -61,8 +61,7 @@ export default function HowItWorksSection({ onSelectModalidad }) {
                     Requisito técnico: Toma de corriente cercana (alargadera de 15 m)
                   </strong>
                   Necesito una toma de corriente accesible a menos de{' '}
-                  <strong>15 metros</strong> del punto de trabajo (llevo una alargadera
-                  profesional de 15 metros).
+                  <strong>15 metros</strong> del punto de trabajo.
                 </div>
               </div>
 
@@ -128,8 +127,8 @@ export default function HowItWorksSection({ onSelectModalidad }) {
 
               <p className="text-stone-800 leading-relaxed">
                 <strong>Recojo tus cuchillos a domicilio</strong>, y afilo gratis el peor en el
-                taller, y se devuelven listos en un plazo máximo de{' '}
-                <strong>24/48 horas</strong>.
+                taller. Se devuelven en mano listos en un plazo máximo de{' '}
+                <strong>24/48 horas</strong> en el lugar de recogida o donde se prefiera dentro de Pozuelo de Alarcón.
               </p>
 
               {/* Garantía Destacada */}
