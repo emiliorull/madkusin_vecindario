@@ -17,13 +17,13 @@ export default function HowItWorksSection({ onSelectModalidad }) {
         {/* Encabezado de Sección */}
         <div className="max-w-3xl mx-auto text-center space-y-3">
           <span className="inline-block px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-stone-200 text-stone-900 border border-stone-300">
-            Exclusivo para el Código Postal 28224 (Pozuelo de Alarcón)
+            Exclusivo para Pozuelo de Alarcón
           </span>
           <h2 className="font-serif text-3xl sm:text-4xl font-bold text-stone-900">
-            Dos modalidades de servicio con Emil
+            Dos modalidades de servicio de afilado
           </h2>
           <p className="text-base sm:text-lg text-stone-800">
-            Tanto si prefieres que Emil afile en tu propia puerta como si eliges recogida y entrega
+            Tanto si prefieres que afile en tu propia puerta como si eliges recogida y entrega
             en 24/48 horas,{' '}
             <strong>tu peor cuchillo de acero de filo liso se afila siempre GRATIS</strong>.
           </p>
@@ -49,8 +49,7 @@ export default function HowItWorksSection({ onSelectModalidad }) {
               </div>
 
               <p className="text-stone-800 leading-relaxed">
-                <strong>Emil</strong> acude a tu casa en el 28224 con su afilador de banda de alta
-                precisión y strop de cuero para devolver el filo a tus cuchillos allí mismo,
+                <strong>Acudo a tu casa</strong> con las herramientas para el afilado de precisión y devolver el filo a tus cuchillos allí mismo,
                 respetando al 100 % el temple del acero sin sobrecalentar nunca la hoja.
               </p>
 
@@ -61,8 +60,8 @@ export default function HowItWorksSection({ onSelectModalidad }) {
                   <strong className="block text-stone-900 font-bold">
                     Requisito técnico: Toma de corriente cercana (alargadera de 15 m)
                   </strong>
-                  Emil necesita una toma de corriente accesible a menos de{' '}
-                  <strong>15 metros</strong> del punto de trabajo (lleva consigo una alargadera
+                  Necesito una toma de corriente accesible a menos de{' '}
+                  <strong>15 metros</strong> del punto de trabajo (llevo una alargadera
                   profesional de 15 metros).
                 </div>
               </div>
@@ -72,7 +71,7 @@ export default function HowItWorksSection({ onSelectModalidad }) {
                 <li className="flex items-start gap-3">
                   <CheckCircle2 className="w-5 h-5 text-kusin-sage shrink-0 mt-0.5" />
                   <span>
-                    <strong>1. Afilado gratis de tu peor cuchillo:</strong> Emil afila primero y
+                    <strong>1. Afilado gratis de tu peor cuchillo:</strong> Afilo primero y
                     totalmente gratis tu peor cuchillo de acero de filo liso.
                   </span>
                 </li>
@@ -80,15 +79,15 @@ export default function HowItWorksSection({ onSelectModalidad }) {
                   <CheckCircle2 className="w-5 h-5 text-kusin-sage shrink-0 mt-0.5" />
                   <span>
                     <strong>2. Prueba inmediata en tu mano:</strong> Compruebas al instante la
-                    precisión del corte.
+                    precisión del cuchillos.
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle2 className="w-5 h-5 text-kusin-sage shrink-0 mt-0.5" />
                   <span>
                     <strong>3. Tarifa de viva voz sin compromiso:</strong> Si te gusta el resultado,
-                    Emil te indica de viva voz la tarifa para afilar el resto de tus cuchillos en el
-                    momento (~5 min por cuchillo).
+                    te indico de viva voz la tarifa para afilar el resto de tus cuchillos en el
+                    momento en función de la cantidad (~5 min por cuchillo).
                   </span>
                 </li>
               </ul>
@@ -128,8 +127,8 @@ export default function HowItWorksSection({ onSelectModalidad }) {
               </div>
 
               <p className="text-stone-800 leading-relaxed">
-                Se recogen tus cuchillos a domicilio en el 28224, se afila gratis el peor en el
-                taller con afilador de banda y strop, y se devuelven listos en un plazo máximo de{' '}
+                <strong>Recojo tus cuchillos a domicilio</strong>, y afilo gratis el peor en el
+                taller, y se devuelven listos en un plazo máximo de{' '}
                 <strong>24/48 horas</strong>.
               </p>
 
@@ -138,11 +137,9 @@ export default function HowItWorksSection({ onSelectModalidad }) {
                 <Sparkles className="w-5 h-5 text-kusin-amber shrink-0 mt-0.5" />
                 <div className="text-sm text-stone-800">
                   <strong className="block text-stone-900 font-bold">
-                    Pruebas primero tu peor cuchillo al entregártelos:
+                    Se devuelven los cuchillos en un plazo de 24/48h (fin de semana no incluido):
                   </strong>
-                  Al devolvértelos en un plazo máximo de <strong>24/48 horas</strong>, pruebas
-                  primero tu peor cuchillo (que se ha afilado gratis).{' '}
-                  <strong>Si no te convence, no hay ningún compromiso.</strong>
+                  El peor cuchillo se <strong>afila gratis</strong>.{' '} Mínimo de cuchillos para recoger es 5.                   
                 </div>
               </div>
 
@@ -151,8 +148,8 @@ export default function HowItWorksSection({ onSelectModalidad }) {
                 <li className="flex items-start gap-3">
                   <CheckCircle2 className="w-5 h-5 text-kusin-sage shrink-0 mt-0.5" />
                   <span>
-                    <strong>1. Recogida en tu puerta:</strong> Emil pasa por tu domicilio a recoger
-                    tus cuchillos de acero de filo liso (visita breve de ~25 min).
+                    <strong>1. Recogida en tu puerta:</strong> Paso por tu domicilio a recoger
+                    tus cuchillos de acero de filo liso.
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
@@ -165,8 +162,7 @@ export default function HowItWorksSection({ onSelectModalidad }) {
                 <li className="flex items-start gap-3">
                   <CheckCircle2 className="w-5 h-5 text-kusin-sage shrink-0 mt-0.5" />
                   <span>
-                    <strong>3. Entrega en 24/48h sin compromiso:</strong> Al recibirlos, pruebas
-                    primero tu peor cuchillo; si no te convence, no hay compromiso.
+                    <strong>3. Entrega en 24/48h:</strong> Te entrego en mano los cuchillos afilados en la dirección de entrega o donde prefieras (siempre dentro de Pozuelo de Alarcón).
                   </span>
                 </li>
               </ul>
@@ -175,7 +171,7 @@ export default function HowItWorksSection({ onSelectModalidad }) {
             <div className="pt-6 mt-6 border-t border-stone-200 flex items-center justify-between gap-4">
               <div className="text-xs text-stone-700 font-medium flex items-center gap-1.5">
                 <Clock className="w-4 h-4 text-kusin-leather" />
-                <span>Recogida: 25 min · Entrega máx. 24/48h</span>
+                <span>Recogida a domicilio · Entrega máx. 24/48h</span>
               </div>
               <a
                 href="#reservar"

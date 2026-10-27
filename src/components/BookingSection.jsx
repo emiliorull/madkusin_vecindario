@@ -141,7 +141,7 @@ export default function BookingSection({
 
     if (modalidad === 'in_situ' && !tieneEnchufe15m) {
       setFormError(
-        'Para el afilado in situ en tu domicilio es obligatorio confirmar que dispones de una toma de corriente cercana a menos de 15 metros (Emil lleva una alargadera profesional de 15 m). Si no tienes enchufe cerca, selecciona "Recogida y entrega (24/48h)".'
+        'Para el afilado in situ en tu domicilio es obligatorio confirmar que dispones de una toma de corriente cercana a menos de 15 metros (llevo alargadera profesional de 15 m). Si no tienes enchufe cerca, selecciona "Recogida y entrega (24/48h)".'
       );
       return;
     }
@@ -214,7 +214,7 @@ export default function BookingSection({
                     ¡Todo listo para afilar gratis tu peor cuchillo!
                   </h2>
                   <p className="text-sm sm:text-base text-stone-600 mt-1">
-                    Hemos enviado un correo electrónico de confirmación con el evento de calendario (
+                    Te he enviado un correo electrónico de confirmación con el evento de calendario (
                     <code>.ics</code>) a <strong>{confirmedAppointment.email}</strong>.
                   </p>
                 </div>
@@ -281,9 +281,9 @@ export default function BookingSection({
                     ¿Quieres recibir un recordatorio en tu móvil sin darnos tu teléfono?
                   </h3>
                   <p className="text-sm text-sky-100/90 mt-1 leading-relaxed">
-                    Nuestro bot de Telegram vincula únicamente el código de tu cita (
-                    <code>cita_{confirmedAppointment.cita_id}</code>) para avisarte cuando Emil esté
-                    de camino, sin revelar nunca tu número de teléfono.
+                    El bot de Telegram vincula únicamente el código de tu cita (
+                    <code>cita_{confirmedAppointment.cita_id}</code>) para avisarte cuando vaya
+                    de camino, sin revelar nunca tu número de teléfono (básicamente porque no lo tengo).
                   </p>
                 </div>
               </div>
@@ -296,8 +296,8 @@ export default function BookingSection({
               >
                 <Send className="w-5 h-5" />
                 <span>
-                  ¿Quieres recibir un recordatorio en tu móvil sin darnos tu teléfono? Pulsa aquí
-                  para abrir nuestro Bot de Telegram
+                  ¿Quieres recibir un recordatorio en tu móvil sin darme tu teléfono? Pulsa aquí
+                  para abrir el Bot de Telegram
                 </span>
                 <ExternalLink className="w-4 h-4 shrink-0" />
               </a>
@@ -333,7 +333,7 @@ export default function BookingSection({
               Agenda del Taller · Lunes a Viernes de 10:00 a 13:00
             </span>
             <h2 className="font-serif text-3xl sm:text-4xl font-bold text-stone-900 mt-2">
-              Reserva tu cita con Emil en 3 pasos
+              Reserva tu cita en 3 pasos
             </h2>
             <p className="text-stone-800 mt-1">
               O si lo prefieres, pulsa en el{' '}
@@ -397,8 +397,8 @@ export default function BookingSection({
                     </span>
                   </div>
                   <p className="text-xs sm:text-sm text-stone-700">
-                    Emil acude a tu casa (necesita toma de corriente a &lt;15m). Afila gratis tu peor
-                    cuchillo y te indica la tarifa de viva voz para el resto.
+                    Acudo a tu casa (necesaria toma de corriente a &lt;15m). Afilo gratis tu peor
+                    cuchillo y te indico la tarifa de viva voz para el resto según el número de cuchillos a afilar. Si no te encaja el precio, sin compromiso.
                   </p>
                 </div>
               </button>
@@ -428,7 +428,7 @@ export default function BookingSection({
                     </span>
                   </div>
                   <p className="text-xs sm:text-sm text-stone-700">
-                    Se recogen tus cuchillos, se afila gratis el peor en el taller y se devuelve en
+                    Afilo gratis tu peor cuchillo. Si te convence, recojo el resto de tus cuchillos y te los devuelvo en
                     24/48h. Pruebas primero tu peor cuchillo: si no te convence, no hay compromiso.
                   </p>
                 </div>
@@ -498,7 +498,7 @@ export default function BookingSection({
                   />
                   <span className="text-sm sm:text-base text-stone-900 font-medium">
                     <strong>Requisito técnico (Afilado In Situ):</strong> Confirmo que dispongo de
-                    una toma de corriente cercana a menos de 15 metros (Emil lleva una alargadera
+                    una toma de corriente cercana a menos de 15 metros (llevo una alargadera
                     profesional de 15 m).
                   </span>
                 </label>

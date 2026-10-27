@@ -33,7 +33,7 @@ export default function HeroSection({ onOpenVoiceAssistant }) {
             <div className="space-y-3">
               <div className="inline-flex flex-wrap items-center gap-2 px-3.5 py-1 rounded-full bg-stone-800 border border-stone-700 text-amber-400 text-xs sm:text-sm font-bold uppercase tracking-wider">
                 <MapPin className="w-4 h-4 text-kusin-terra shrink-0" />
-                <span>El Afilador del Siglo XXI · Exclusivo CP 28224 (Pozuelo de Alarcón)</span>
+                <span>El Afilador a domicilio · Servicio exclusivo en Pozuelo de Alarcón</span>
               </div>
 
               <h1 className="font-display text-4xl sm:text-6xl lg:text-7xl font-extrabold uppercase tracking-tight text-stone-50 leading-[1.03]">
@@ -46,9 +46,9 @@ export default function HeroSection({ onOpenVoiceAssistant }) {
                 Sin compromiso · En tu puerta
               </span>
               <p className="text-sm leading-relaxed text-stone-200">
-                Elige ese cuchillo de acero de filo liso que ya no corta ni un tomate.{' '}
-                <strong className="text-white">Emil</strong> lo devuelve a la vida gratis para que
-                compruebes el filo real antes de decidir nada más.
+                Elige ese cuchillo de acero de filo liso que ya no corta.{' '}
+                Recupero <strong className="text-white">su filo gratis</strong> para que
+                compruebes el resultado real antes de decidir nada más.
               </p>
             </div>
           </div>
@@ -64,25 +64,30 @@ export default function HeroSection({ onOpenVoiceAssistant }) {
 
             <h2 className="font-serif text-3xl sm:text-4xl lg:text-[2.75rem] font-bold text-stone-900 leading-[1.15] tracking-tight">
               Soy <span className="text-kusin-terra">Emil</span>, tu artesano afilador a domicilio
-              en el vecindario del 28224.
+              en Pozuelo de Alarcón.
             </h2>
 
             {/* Descripción Técnica del Afilado (ACTUALIZADA ESTRICTAMENTE) */}
             <blockquote className="p-5 sm:p-6 rounded-2xl bg-[#FBF9F5] border-l-4 border-kusin-terra border-y border-r border-stone-300 shadow-sm">
               <p className="font-serif italic text-base sm:text-lg text-stone-900 leading-relaxed">
-                "Afilado profesional de alta precisión con afilador de banda y strop, absolutamente
+                "Afilado profesional de alta precisión con ángulo de 15º. Uso afilador de banda y strop de cuero, absolutamente
                 respetuoso con el temple del acero y diseñado para no sobrecalentar nunca la hoja."
               </p>
             </blockquote>
 
             <p className="text-base sm:text-lg text-stone-800 leading-relaxed">
-              Recupero la figura del clásico afilador ambulante con maquinaria moderna de precisión.
-              Me desplazo a tu domicilio en <strong>Pozuelo (CP 28224)</strong> o recojo tus
+              Recupero la figura del clásico afilador ambulante pero actualizo con maquinaria moderna de precisión y respeto con los procesos térmicos del temple.
+            </p>
+            <p className="text-base sm:text-lg text-stone-800 leading-relaxed">
+              Me desplazo a tu domicilio en <strong>Pozuelo de Alarcón</strong> o recojo tus
               cuchillos para devolvértelos listos en 24/48h. Y si quieres reservar hablando en un
               minuto, mi asistente de inteligencia artificial <strong>Kusin</strong> te atiende al
-              instante.
+              instante 24/7.
             </p>
-
+            <p className="text-base sm:text-lg text-stone-800 leading-relaxed">
+              Y si quieres reservar hablando en un minuto, mi asistente de inteligencia artificial <strong>Kusin</strong> te atiende al
+              instante 24/7 o responde todas tus preguntas o dudas sobre afilados, aceros, ángulos, tipos de cuchillos, etc.
+            </p>
             {/* Dos CTAs Principales grandes y accesibles */}
             <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
               {/* CTA 1: Asistente de Voz con Kusin */}
@@ -97,7 +102,7 @@ export default function HeroSection({ onOpenVoiceAssistant }) {
                 <div className="text-left">
                   <span className="block leading-tight">Asistente de cita</span>
                   <span className="block text-xs font-normal text-stone-300">
-                    Habla con Kusin (IA del taller de Emil)
+                    Habla con Kusin (IA del taller)
                   </span>
                 </div>
                 {/* Onda de audio animada */}
@@ -145,10 +150,10 @@ export default function HeroSection({ onOpenVoiceAssistant }) {
               <div className="flex items-center justify-between border-b border-stone-800 pb-5 mb-6">
                 <div>
                   <span className="text-xs font-bold uppercase tracking-widest text-amber-400">
-                    Acero al Carbono · Cuero · Precisión
+                    Acero  · Cuero · Precisión
                   </span>
                   <h3 className="font-serif text-2xl font-bold text-white mt-1">
-                    El Oficio de Emil
+                    ¿Cómo afilo?
                   </h3>
                 </div>
                 <div className="w-12 h-12 rounded-2xl bg-stone-800 border border-stone-700 flex items-center justify-center text-amber-400">
@@ -164,17 +169,33 @@ export default function HeroSection({ onOpenVoiceAssistant }) {
                   </div>
                   <div>
                     <h4 className="font-bold text-white text-base">
-                      1. Afilador de banda de alta precisión
+                      1. Afilador de banda respetuoso con el acero
                     </h4>
                     <p className="text-sm text-stone-300 mt-1 leading-relaxed">
                       Trabajo con abrasivos técnicos y control de velocidad absolutamente
                       respetuosos con el temple del acero, diseñados para no sobrecalentar nunca la
-                      hoja.
+                      hoja y garantizar su integridad.
                     </p>
                   </div>
                 </div>
 
-                {/* Paso técnico 2: Strop de cuero */}
+                {/* Paso técnico 2: Afilador de precisión */}
+                <div className="flex items-start gap-4 p-4 rounded-2xl bg-stone-800/80 border border-stone-700">
+                  <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+                    <Gauge className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-white text-base">
+                      1. Ángulo de alta precisión
+                    </h4>
+                    <p className="text-sm text-stone-300 mt-1 leading-relaxed">
+                      Realizo perfil técnico del filo dejando el bisel primario a un ángulo de 15º para optimizar la penetración y el rendimiento del ápex del filo."
+
+                    </p>
+                  </div>
+                </div>
+
+                {/* Paso técnico 3: Strop de cuero */}
                 <div className="flex items-start gap-4 p-4 rounded-2xl bg-stone-800/80 border border-stone-700">
                   <div className="w-10 h-10 rounded-xl bg-kusin-terra/30 text-amber-300 flex items-center justify-center shrink-0">
                     <Sparkles className="w-5 h-5" />
@@ -196,7 +217,7 @@ export default function HeroSection({ onOpenVoiceAssistant }) {
                     ¿Por qué el peor cuchillo es gratis?
                   </p>
                   <p className="text-sm text-stone-200 mt-1 leading-relaxed">
-                    Porque el buen oficio se demuestra cortando. Emil afila primero tu peor cuchillo
+                    Porque la confianza se gana con el buen oficio. Afilo primero tu peor cuchillo
                     de acero de filo liso gratis; lo pruebas y solo si te convence decides sobre el
                     resto.
                   </p>

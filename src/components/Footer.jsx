@@ -18,22 +18,22 @@ export default function Footer({ onOpenVoiceAssistant }) {
               </div>
               <div>
                 <span className="font-serif font-bold text-xl text-white block">
-                  Emil · El Afilador del Siglo XXI
+                  Taller de afilado a domicilio
                 </span>
-                <span className="text-xs text-amber-400">vecindario.madkusin.com · CP 28224</span>
+                <span className="text-xs text-amber-400">Disponible en Pozuelo de Alarcón</span>
               </div>
             </div>
             <p className="text-sm text-stone-400 leading-relaxed">
               Afilado profesional de alta precisión con afilador de banda y strop, absolutamente
               respetuoso con el temple del acero y diseñado para no sobrecalentar nunca la hoja.
-              Exclusivo para hogares del código postal 28224 (Pozuelo de Alarcón).
+              Exclusivo para hogares de Pozuelo de Alarcón.
             </p>
           </div>
 
           {/* Columna 2: Horario y Reglas */}
           <div className="space-y-3 text-sm">
             <h3 className="font-bold text-white uppercase tracking-wider text-xs">
-              Horario y Condiciones en el 28224
+              Horario y Condiciones
             </h3>
             <ul className="space-y-2 text-stone-300">
               <li className="flex items-center gap-2">
@@ -42,7 +42,7 @@ export default function Footer({ onOpenVoiceAssistant }) {
               </li>
               <li className="flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-amber-400 shrink-0" />
-                <span>Exclusivo residentes CP 28224 (Pozuelo de Alarcón)</span>
+                <span>Exclusivo residentes de Pozuelo de Alarcón</span>
               </li>
               <li className="flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
@@ -57,8 +57,8 @@ export default function Footer({ onOpenVoiceAssistant }) {
               AFILO GRATIS TU PEOR CUCHILLO
             </h3>
             <p className="text-xs text-stone-400 leading-relaxed">
-              Agenda tu visita con Emil o habla con nuestro asistente virtual <strong>Kusin</strong>{' '}
-              para reservar tu prueba gratuita en un minuto.
+              <strong>Agenda en un minuto</strong>{' '} tu visita tú mismo o habla con nuestro asistente virtual <strong>Kusin</strong>{' '}
+              para reservar tu <strong>prueba gratuita</strong>{' '}.
             </p>
             <div className="flex flex-wrap gap-2.5 pt-1">
               <button
@@ -81,10 +81,9 @@ export default function Footer({ onOpenVoiceAssistant }) {
         </div>
 
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-stone-500">
-          <p>© {new Date().getFullYear()} MadKusin · Taller de Afilado de Emil (CP 28224).</p>
+          <p>© {new Date().getFullYear()} MadKusin · Taller de Afilado a domicilio.</p>
           <p>
-            Solo cuchillos de acero de filo liso · Afilador de banda y strop de cuero sin
-            sobrecalentar la hoja.
+            "Cuchillo desafilado, corta el dedo y no el palo"
           </p>
         </div>
       </div>
