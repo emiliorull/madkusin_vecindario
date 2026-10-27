@@ -47,7 +47,7 @@ export default function HeroSection({ onOpenVoiceAssistant }) {
               </span>
               <p className="text-sm leading-relaxed text-stone-200">
                 Elige ese cuchillo de acero de filo liso que ya no corta.{' '}
-                Recupero <strong className="text-white">su filo gratis</strong> para que
+                <strong className="text-white">Recupero su filo gratis</strong> para que
                 compruebes el resultado real antes de decidir nada más.
               </p>
             </div>
@@ -80,12 +80,10 @@ export default function HeroSection({ onOpenVoiceAssistant }) {
             </p>
             <p className="text-base sm:text-lg text-stone-800 leading-relaxed">
               Me desplazo a tu domicilio en <strong>Pozuelo de Alarcón</strong> o recojo tus
-              cuchillos para devolvértelos listos en 24/48h. Y si quieres reservar hablando en un
-              minuto, mi asistente de inteligencia artificial <strong>Kusin</strong> te atiende al
-              instante 24/7.
+              cuchillos para devolvértelos listos en 24/48h.
             </p>
             <p className="text-base sm:text-lg text-stone-800 leading-relaxed">
-              Y si quieres reservar hablando en un minuto, mi asistente de inteligencia artificial <strong>Kusin</strong> te atiende al
+              Y si quieres reservar hablando en un minuto, mi asistente <strong>Kusin</strong> te atiende al
               instante 24/7 o responde todas tus preguntas o dudas sobre afilados, aceros, ángulos, tipos de cuchillos, etc.
             </p>
             {/* Dos CTAs Principales grandes y accesibles */}
@@ -186,7 +184,7 @@ export default function HeroSection({ onOpenVoiceAssistant }) {
                   </div>
                   <div>
                     <h4 className="font-bold text-white text-base">
-                      1. Ángulo de alta precisión
+                      2. Ángulo de alta precisión
                     </h4>
                     <p className="text-sm text-stone-300 mt-1 leading-relaxed">
                       Realizo perfil técnico del filo dejando el bisel primario a un ángulo de 15º para optimizar la penetración y el rendimiento del ápex del filo."
@@ -202,7 +200,7 @@ export default function HeroSection({ onOpenVoiceAssistant }) {
                   </div>
                   <div>
                     <h4 className="font-bold text-white text-base">
-                      2. Asentado y pulido en Strop de cuero
+                      3. Asentado y pulido en Strop de cuero
                     </h4>
                     <p className="text-sm text-stone-300 mt-1 leading-relaxed">
                       Eliminamos cualquier micro-rebaba en cuero tostado preparado para lograr un
