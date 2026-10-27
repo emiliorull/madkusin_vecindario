@@ -397,9 +397,9 @@ export default function BookingSection({
                     </span>
                   </div>
                   <p className="text-xs sm:text-sm text-stone-700">
-                    Acudo a tu casa (necesaria toma de corriente a &lt;15m). 
+                    Acudo a tu casa. 
                     <p>
-                    <strong>Afilo gratis tu peor cuchillo frente a ti</strong>
+                    <strong>Afilo gratis tu peor cuchillo frente a ti</strong>.
                     </p> 
                     y te indico la tarifa para el resto según el número de cuchillos a afilar. Si no te encaja el precio, sin compromiso.
                   </p>
@@ -431,11 +431,11 @@ export default function BookingSection({
                     </span>
                   </div>
                   <p className="text-xs sm:text-sm text-stone-700">
-                    Recojo tus cuchillos a domicilio, 
+                    Recojo tus cuchillos a domicilio. 
                     <p>
-                    <strong>Afilo gratis tu peor cuchillo en el taller</strong>
+                    <strong>Afilo gratis tu peor cuchillo en el taller</strong>.
                     </p> 
-                    Se devuelven en mano listos en un plazo máximo de 24/48 horas en el lugar de recogida o donde se prefiera dentro de Pozuelo de Alarcón.
+                    Se devuelven listos en mano en un plazo máximo de 24/48 horas en el lugar de recogida o donde se prefiera dentro de Pozuelo de Alarcón.
                   </p>
                 </div>
               </button>
