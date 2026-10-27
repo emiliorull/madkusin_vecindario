@@ -397,8 +397,11 @@ export default function BookingSection({
                     </span>
                   </div>
                   <p className="text-xs sm:text-sm text-stone-700">
-                    Acudo a tu casa (necesaria toma de corriente a &lt;15m). Afilo gratis tu peor
-                    cuchillo y te indico la tarifa de viva voz para el resto según el número de cuchillos a afilar. Si no te encaja el precio, sin compromiso.
+                    Acudo a tu casa (necesaria toma de corriente a &lt;15m). 
+                    <p>
+                    <strong>Afilo gratis tu peor cuchillo frente a ti</strong>
+                    </p> 
+                    y te indico la tarifa para el resto según el número de cuchillos a afilar. Si no te encaja el precio, sin compromiso.
                   </p>
                 </div>
               </button>
@@ -428,8 +431,11 @@ export default function BookingSection({
                     </span>
                   </div>
                   <p className="text-xs sm:text-sm text-stone-700">
-                    Afilo gratis tu peor cuchillo. Si te convence, recojo el resto de tus cuchillos y te los devuelvo en
-                    24/48h. Pruebas primero tu peor cuchillo: si no te convence, no hay compromiso.
+                    Recojo tus cuchillos a domicilio, 
+                    <p>
+                    <strong>Afilo gratis tu peor cuchillo en el taller</strong>
+                    </p> 
+                    Se devuelven en mano listos en un plazo máximo de 24/48 horas en el lugar de recogida o donde se prefiera dentro de Pozuelo de Alarcón.
                   </p>
                 </div>
               </button>
@@ -447,7 +453,7 @@ export default function BookingSection({
                 <p className="text-xs sm:text-sm text-stone-700 flex items-center gap-1.5">
                   <Sparkles className="w-4 h-4 text-kusin-terra shrink-0" />
                   <span>
-                    Recuerda: <strong>AFILO GRATIS TU PEOR CUCHILLO</strong> sin ningún compromiso.
+                    Recuerda: <strong>AFILO GRATIS TU PEOR CUCHILLO</strong> sin ningún compromiso, pero inclúyelo para estimar el tiempo de trabajo.
                   </span>
                 </p>
               </div>
@@ -498,8 +504,7 @@ export default function BookingSection({
                   />
                   <span className="text-sm sm:text-base text-stone-900 font-medium">
                     <strong>Requisito técnico (Afilado In Situ):</strong> Confirmo que dispongo de
-                    una toma de corriente cercana a menos de 15 metros (llevo una alargadera
-                    profesional de 15 m).
+                    una toma de corriente cercana a menos de 15 metros.
                   </span>
                 </label>
               )}
@@ -794,7 +799,7 @@ export default function BookingSection({
                   htmlFor="input-notas"
                   className="block text-sm font-bold text-stone-800 mb-1.5"
                 >
-                  Notas opcionales (indicaciones de timbre, puerta o lugar del enchufe)
+                  Notas opcionales: Dado que no pido teléfono, te agradezco que la máxima precisión posible (indicaciones de timbre, puerta o lugar del enchufe).
                 </label>
                 <div className="relative">
                   <FileText className="w-4 h-4 text-stone-400 absolute left-3.5 top-3.5" />
