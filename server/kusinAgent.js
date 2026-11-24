@@ -589,14 +589,25 @@ export async function updateUserAppointmentInPocketBase(args, verifiedChatId) {
   }
 }
 
+function escapeHtml(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 /**
- * Envía un aviso inmediato al canal privado de Telegram de Emil cuando un cliente solicita atención humana directa.
+ * Envía un aviso inmediato al canal privado de Telegram de Emil cuando un cliente solicita atención humana directa,
+ * incluyendo enlace directo al usuario de Telegram (https://t.me/username y tg://user?id=CHAT_ID) y botón interactivo.
  */
 export async function notifyEmilHumanAttention({
   motivo = '',
   nombre = '',
   email = '',
   channel = 'web',
+  verifiedTelegramChatId = null,
+  telegramUser = null,
   ownAppointments = []
 }) {
   const adminToken = process.env.TELEGRAM_ADMIN_BOT_TOKEN || '';
@@ -606,28 +617,102 @@ export async function notifyEmilHumanAttention({
     .filter(Boolean);
 
   const cita = ownAppointments?.[0] || null;
-  const contactName = nombre || cita?.nombre || 'Cliente';
+  const fullTgName = [telegramUser?.firstName, telegramUser?.lastName].filter(Boolean).join(' ').trim();
+  const contactName = nombre || cita?.nombre || fullTgName || 'Cliente';
   const contactEmail = email || cita?.email || 'No indicado aún';
+  const tgChatId = sanitizeTelegramChatId(
+    verifiedTelegramChatId || telegramUser?.id || cita?.telegram_chat_id || ''
+  );
+  const tgUsername = String(telegramUser?.username || '')
+    .replace(/^@/, '')
+    .trim();
 
-  const alertText =
-    `🙋‍♂️ *Solicitud de Atención Humana Directa (${channel === 'telegram_user' ? 'Telegram' : 'Web'})*\n\n` +
-    `• *Cliente:* ${contactName}\n` +
-    `• *Correo electrónico:* ${contactEmail}\n` +
+  let telegramLinkLine = '';
+  if (tgUsername && tgChatId) {
+    telegramLinkLine =
+      `• <b>Usuario de Telegram:</b> <a href="https://t.me/${escapeHtml(tgUsername)}">@${escapeHtml(
+        tgUsername
+      )}</a> · <a href="tg://user?id=${tgChatId}">Abrir chat directo con ${escapeHtml(
+        contactName
+      )}</a> (ID: <code>${tgChatId}</code>)\n`;
+  } else if (tgUsername) {
+    telegramLinkLine = `• <b>Usuario de Telegram:</b> <a href="https://t.me/${escapeHtml(
+      tgUsername
+    )}">@${escapeHtml(tgUsername)} (Abrir chat en Telegram)</a>\n`;
+  } else if (tgChatId) {
+    telegramLinkLine = `• <b>Enlace directo en Telegram:</b> <a href="tg://user?id=${tgChatId}">👉 Abrir chat con ${escapeHtml(
+      contactName
+    )}</a> (ID: <code>${tgChatId}</code>)\n`;
+  }
+
+  const replyViaBotHint = tgChatId
+    ? `\n\n💡 <i>También puedes responderle desde aquí escribiendo:</i>\n<code>/responder ${tgChatId} Hola ${escapeHtml(
+        contactName
+      )}, soy Emil...</code>`
+    : '';
+
+  const alertHtml =
+    `🙋‍♂️ <b>Solicitud de Atención Humana Directa (${
+      channel === 'telegram_user' ? 'Telegram' : 'Web'
+    })</b>\n\n` +
+    `• <b>Cliente:</b> ${escapeHtml(contactName)}\n` +
+    telegramLinkLine +
+    `• <b>Correo electrónico:</b> ${escapeHtml(contactEmail)}\n` +
     (cita
-      ? `• *Cita vinculada:* ${cita.fecha} a las ${cita.hora_inicio} h · ${cita.direccion} (${cita.num_cuchillos} cuchillos, ${cita.modalidad})\n`
+      ? `• <b>Cita vinculada:</b> ${escapeHtml(cita.fecha)} a las ${escapeHtml(
+          cita.hora_inicio
+        )} h · ${escapeHtml(cita.direccion)} (${escapeHtml(cita.num_cuchillos)} cuchillos, ${escapeHtml(
+          cita.modalidad
+        )})\n`
       : '') +
-    `• *Mensaje / Motivo:* ${motivo || 'El cliente solicita que Emil le atienda personalmente.'}`;
+    `• <b>Mensaje / Motivo:</b> ${escapeHtml(
+      motivo || 'El cliente solicita que Emil le atienda personalmente.'
+    )}` +
+    replyViaBotHint;
+
+  const directUrl = tgUsername
+    ? `https://t.me/${tgUsername}`
+    : tgChatId
+    ? `tg://user?id=${tgChatId}`
+    : '';
 
   if (adminToken && adminChatIds.length > 0) {
     for (const adminId of adminChatIds) {
-      await fetch(`https://api.telegram.org/bot${adminToken}/sendMessage`, {
+      const payload = {
+        chat_id: adminId,
+        text: alertHtml,
+        parse_mode: 'HTML',
+        disable_web_page_preview: true
+      };
+
+      if (directUrl) {
+        payload.reply_markup = {
+          inline_keyboard: [
+            [
+              {
+                text: `💬 Contactar en Telegram con ${contactName}`,
+                url: directUrl
+              }
+            ]
+          ]
+        };
+      }
+
+      const res = await fetch(`https://api.telegram.org/bot${adminToken}/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id: adminId,
-          text: alertText
-        })
-      }).catch(() => {});
+        body: JSON.stringify(payload)
+      }).catch(() => null);
+
+      // Si el usuario tiene privacidad restringida en Telegram que impide botones tg://user, enviar con el enlace HTML en el texto
+      if (res && !res.ok && payload.reply_markup) {
+        delete payload.reply_markup;
+        await fetch(`https://api.telegram.org/bot${adminToken}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }).catch(() => {});
+      }
     }
   }
 
@@ -635,7 +720,8 @@ export async function notifyEmilHumanAttention({
     ok: true,
     notified: Boolean(adminToken && adminChatIds.length > 0),
     direct_email: 'emil@madkusin.com',
-    contact_email_recorded: contactEmail
+    contact_email_recorded: contactEmail,
+    telegram_direct_link: directUrl || null
   };
 }
 
@@ -934,7 +1020,8 @@ export async function runKusinUserAgent({
   message,
   history = [],
   channel = 'web',
-  verifiedTelegramChatId = null
+  verifiedTelegramChatId = null,
+  telegramUser = null
 }) {
   const cleanMsg = String(message || '').trim();
   if (!cleanMsg) {
@@ -1054,6 +1141,8 @@ export async function runKusinUserAgent({
         toolResult = await notifyEmilHumanAttention({
           ...fnArgs,
           channel,
+          verifiedTelegramChatId,
+          telegramUser,
           ownAppointments
         });
         toolEvents.push({
@@ -1149,6 +1238,35 @@ async function listAllPocketBaseAppointments(limit = 15) {
 export async function runKusinAdminAgent({ message, adminName = 'Emil' }) {
   const text = String(message || '').trim();
   const stats = ragEngine.getStats();
+
+  // Comando directo para responder personalmente a un usuario de Telegram desde el bot privado de Emil
+  if (text.toLowerCase().startsWith('/responder ')) {
+    const rest = text.slice(11).trim();
+    const firstSpace = rest.indexOf(' ');
+    if (firstSpace === -1) {
+      return '⚠️ Formato: `/responder <ID_TELEGRAM> <tu mensaje>`';
+    }
+    const targetChatId = sanitizeTelegramChatId(rest.slice(0, firstSpace));
+    const replyBody = rest.slice(firstSpace + 1).trim();
+    const userBotToken = process.env.TELEGRAM_BOT_TOKEN || '';
+    if (!targetChatId || !replyBody || !userBotToken) {
+      return '⚠️ Faltan datos para enviar el mensaje al usuario.';
+    }
+    const sendRes = await fetch(`https://api.telegram.org/bot${userBotToken}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: targetChatId,
+        text: `✉️ *Mensaje directo de Emil (MadKusin):*\n\n${replyBody}`,
+        parse_mode: 'Markdown'
+      })
+    }).catch(() => null);
+
+    if (sendRes && sendRes.ok) {
+      return `✅ Mensaje personal enviado directamente al chat de Telegram del cliente (\`${targetChatId}\`).`;
+    }
+    return `⚠️ No se pudo entregar el mensaje al chat \`${targetChatId}\`.`;
+  }
 
   // Comando directo para enseñar una regla o documento desde el chat privado
   if (text.toLowerCase().startsWith('/aprender ')) {

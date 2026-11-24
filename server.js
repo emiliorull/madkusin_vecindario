@@ -331,10 +331,17 @@ async function handleTelegramUserWebhook(req, res) {
 
     // 3. Cualquier pregunta técnica o consulta de su propia cita -> Agente IA Zero-Trust
     if (text) {
+      const telegramUser = {
+        id: String(chatId),
+        username: message?.from?.username || '',
+        firstName: message?.from?.first_name || '',
+        lastName: message?.from?.last_name || ''
+      };
       const agentRes = await runKusinUserAgent({
         message: text,
         channel: 'telegram_user',
-        verifiedTelegramChatId: String(chatId)
+        verifiedTelegramChatId: String(chatId),
+        telegramUser
       });
       await sendTelegramMessage(TELEGRAM_BOT_TOKEN, chatId, agentRes.reply);
     }
