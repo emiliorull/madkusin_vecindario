@@ -283,9 +283,10 @@ async function handleTelegramUserWebhook(req, res) {
           `✅ *¡Hola ${c.nombre || firstName}! Tu aviso de cita ha quedado activado.*\n\n` +
           `📋 *Datos de tu cita:*\n` +
           `${formatAppointmentDetailsForTelegram(c)}\n\n` +
-          `Puedes consultarme tu cita en cualquier momento o pedirme modificar lo que necesites (fecha, hora, dirección completa, correo electrónico, número de cuchillos o modalidad), así como hacerme cualquier pregunta sobre tus cuchillos o el afilado.`;
+          `Puedes consultarme tu cita en cualquier momento, pedirme modificar lo que necesites (fecha, hora, dirección completa, correo electrónico, número de cuchillos o modalidad) o hacerme cualquier pregunta sobre tus cuchillos o el afilado.\n\n` +
+          `💬 _Si en algún momento necesitas atención humana directa, solo dímelo por aquí para avisar a Emil o escríbele a emil@madkusin.com._`;
       } else if (linkRes.reason === 'ALREADY_LINKED_TO_ANOTHER_USER') {
-        replyText = `🔒 Por seguridad y privacidad, esa cita ya está vinculada a otro usuario. Solo puedes consultar o modificar tu propia cita o hacerme preguntas técnicas sobre cuchillos y afilado.`;
+        replyText = `🔒 Por seguridad y privacidad, esa cita ya está vinculada a otro usuario. Solo puedes consultar o modificar tu propia cita o hacerme preguntas técnicas sobre cuchillos y afilado. Si necesitas atención humana directa, puedes pedírmelo por aquí o escribir a emil@madkusin.com.`;
       } else {
         const ownCitas = await getUserOwnAppointmentsByTelegramId(chatId);
         if (ownCitas.length > 0) {
@@ -293,10 +294,10 @@ async function handleTelegramUserWebhook(req, res) {
           replyText =
             `✅ *¡Hola ${c.nombre || firstName}! Aquí tienes los datos de tu cita:*\n\n` +
             `${formatAppointmentDetailsForTelegram(c)}\n\n` +
-            `Dime si necesitas modificar algún dato o si tienes cualquier pregunta sobre tus cuchillos.`;
+            `Dime si necesitas modificar algún dato, si tienes cualquier pregunta sobre tus cuchillos o si deseas atención humana directa de Emil.`;
         } else {
           replyText =
-            `✅ *¡Hola ${firstName}!* Para mostrarte todos los datos de tu cita (fecha, hora, dirección completa, correo electrónico y número de cuchillos) y poder modificar lo que necesites, escríbeme por favor el correo electrónico con el que realizaste la reserva.`;
+            `✅ *¡Hola ${firstName}!* Para mostrarte todos los datos de tu cita (fecha, hora, dirección completa, correo electrónico y número de cuchillos) y poder modificar lo que necesites, escríbeme por favor el correo electrónico con el que realizaste la reserva (o pídeme atención humana directa si prefieres que te atienda Emil personalmente).`;
         }
       }
 
@@ -313,15 +314,16 @@ async function handleTelegramUserWebhook(req, res) {
           `🔪 ¡Hola ${c.nombre || firstName}! Soy *Kusin*, el asistente técnico del taller de afilado de *Emil*.\n\n` +
           `📋 *Datos actuales de tu cita:*\n` +
           `${formatAppointmentDetailsForTelegram(c)}\n\n` +
-          `Puedes pedirme modificar cualquier dato de tu cita que necesites o hacerme cualquier pregunta sobre tus cuchillos y su afilado.`;
+          `Puedes pedirme modificar cualquier dato de tu cita que necesites, hacerme cualquier pregunta sobre tus cuchillos y su afilado, o solicitar atención humana directa de Emil en cualquier momento.`;
         await sendTelegramMessage(TELEGRAM_BOT_TOKEN, chatId, welcomeWithCita);
         return sendJson(res, 200, { ok: true });
       }
 
       const welcomeText =
         `🔪 ¡Hola ${firstName}! Soy *Kusin*, el asistente técnico del taller de afilado de *Emil*.\n\n` +
-        `• Puedes hacerme cualquier pregunta sobre cuchillos, aceros, ángulos, temple o afilado.\n` +
+        `• Puedes hacerme cualquier pregunta sobre servicios de afilado, cuidado y tipos de cuchillos, tarifas, zonas de recogida o citas.\n` +
         `• Si quieres consultar todos los datos de tu cita o modificar lo que necesites, indícame el correo electrónico con el que hiciste la reserva.\n` +
+        `• Si necesitas atención humana directa, pídemelo por aquí mismo o escribe a *emil@madkusin.com*.\n` +
         `• Para reservar una cita nueva: https://vecindario.madkusin.com`;
       await sendTelegramMessage(TELEGRAM_BOT_TOKEN, chatId, welcomeText);
       return sendJson(res, 200, { ok: true });

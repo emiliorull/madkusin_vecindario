@@ -590,6 +590,56 @@ export async function updateUserAppointmentInPocketBase(args, verifiedChatId) {
 }
 
 /**
+ * Envía un aviso inmediato al canal privado de Telegram de Emil cuando un cliente solicita atención humana directa.
+ */
+export async function notifyEmilHumanAttention({
+  motivo = '',
+  nombre = '',
+  email = '',
+  channel = 'web',
+  ownAppointments = []
+}) {
+  const adminToken = process.env.TELEGRAM_ADMIN_BOT_TOKEN || '';
+  const adminChatIds = (process.env.ADMIN_TELEGRAM_CHAT_ID || '')
+    .split(',')
+    .map((id) => id.trim())
+    .filter(Boolean);
+
+  const cita = ownAppointments?.[0] || null;
+  const contactName = nombre || cita?.nombre || 'Cliente';
+  const contactEmail = email || cita?.email || 'No indicado aún';
+
+  const alertText =
+    `🙋‍♂️ *Solicitud de Atención Humana Directa (${channel === 'telegram_user' ? 'Telegram' : 'Web'})*\n\n` +
+    `• *Cliente:* ${contactName}\n` +
+    `• *Correo electrónico:* ${contactEmail}\n` +
+    (cita
+      ? `• *Cita vinculada:* ${cita.fecha} a las ${cita.hora_inicio} h · ${cita.direccion} (${cita.num_cuchillos} cuchillos, ${cita.modalidad})\n`
+      : '') +
+    `• *Mensaje / Motivo:* ${motivo || 'El cliente solicita que Emil le atienda personalmente.'}`;
+
+  if (adminToken && adminChatIds.length > 0) {
+    for (const adminId of adminChatIds) {
+      await fetch(`https://api.telegram.org/bot${adminToken}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: adminId,
+          text: alertText
+        })
+      }).catch(() => {});
+    }
+  }
+
+  return {
+    ok: true,
+    notified: Boolean(adminToken && adminChatIds.length > 0),
+    direct_email: 'emil@madkusin.com',
+    contact_email_recorded: contactEmail
+  };
+}
+
+/**
  * Construye el System Prompt para el canal de Usuarios (Web y Telegram Público).
  * Sin respuestas preestablecidas: responde a todas las preguntas basándose en la documentación proporcionada
  * y en los datos reales de la cita del usuario.
@@ -629,20 +679,32 @@ function buildUserAgentSystemPrompt({ ragChunks, ownAppointments, channel }) {
     personalDataSection = `SESIÓN WEB: El usuario está en el asistente web de vecindario.madkusin.com. Puede hacer cualquier pregunta técnica o sobre el servicio, consultar disponibilidad (\`check_availability\`), reservar una cita nueva (\`book_appointment\`), o consultar/modificar su cita indicando su correo electrónico (\`lookup_appointment_by_email\` / \`update_appointment\`).`;
   }
 
-  return `Eres Kusin, el asistente técnico de inteligencia artificial del taller de afilado de Emil (vecindario.madkusin.com).
+  return `Eres Kusin, el asistente técnico de inteligencia artificial del taller de afilado de Emil (MadKusin · vecindario.madkusin.com).
 Fecha actual: ${todayIso}. Canal: ${channel}.
 
-DIRECTRICES FUNDAMENTALES:
-1. SIN RESPUESTAS PREESTABLECIDAS:
-   - Responde a TODAS las preguntas del usuario de forma natural, clara, precisa y directa basándote en la DOCUMENTACIÓN TÉCNICA Y DE SERVICIO PROPORCIONADA más abajo.
-   - No utilices plantillas rígidas ni repitas eslóganes prefabricados en cada mensaje; contesta exactamente a lo que el usuario pregunta usando el conocimiento de la documentación.
-2. SIN CÓDIGOS INTERNOS NI REFERENCIAS GEOGRÁFICAS:
+DIRECTRICES FUNDAMENTALES Y OBLIGATORIAS:
+1. ÁMBITO EXCLUSIVO DE RESPUESTA (SOLO TEMAS DE MADKUSIN):
+   - ÚNICAMENTE debes responder preguntas relacionadas con:
+     * Servicios de afilado de MadKusin (método en banda y strop, modalidades in situ a domicilio y recogida/entrega en 24/48h)
+     * Cuidado, mantenimiento y uso correcto de cuchillos
+     * Tipos de cuchillos, aceros, temple, geometrías y ángulos de corte
+     * Tarifas y condiciones del servicio (afilado 100 % gratis y sin compromiso del peor cuchillo de acero de filo liso)
+     * Zonas de recogida y servicio a domicilio
+     * Citas de MadKusin (disponibilidad, reserva, consulta de todos los datos de la cita y modificación de citas)
+   - DECLINACIÓN AMABLE FUERA DE ÁMBITO: Si el usuario realiza cualquier consulta ajena al negocio (política, informática, matemáticas, cultura general, recetas no relacionadas con el corte/cuchillos o cualquier otro tema externo), declina amablemente responder explicando que eres el asistente especializado de MadKusin y que solo puedes atender consultas sobre servicios de afilado, cuidado y tipos de cuchillos, tarifas, zonas de recogida y citas de MadKusin.
+2. VÍA FÁCIL DE ATENCIÓN HUMANA DIRECTA:
+   - Incluye siempre una vía fácil para que el cliente pueda solicitar atención humana directa con Emil si lo necesita (diciéndote por aquí mismo que quiere hablar con Emil o atención personal para que ejecutes \`request_human_attention\`, o escribiendo directamente a **emil@madkusin.com**).
+   - Cuando el cliente pida atención humana directa o hablar con Emil, ejecuta la herramienta \`request_human_attention\` para avisar inmediatamente a Emil y facilítale también el correo directo **emil@madkusin.com**.
+3. SIN RESPUESTAS PREESTABLECIDAS:
+   - Responde a todas las preguntas del usuario (dentro del ámbito de MadKusin) de forma natural, clara, precisa y directa basándote en la DOCUMENTACIÓN TÉCNICA Y DE SERVICIO PROPORCIONADA más abajo.
+   - No utilices plantillas rígidas ni repitas eslóganes prefabricados; contesta exactamente a lo que el usuario pregunta usando el conocimiento de la documentación.
+4. SIN CÓDIGOS INTERNOS NI REFERENCIAS A "POZUELO DE ALARCÓN Y ALREDEDORES":
    - NUNCA muestres códigos internos de base de datos (como #coie0i6n3p6e93r o IDs alfanuméricos).
-   - NUNCA menciones "Pozuelo de Alarcón y alrededores", "Pozuelo de Alarcón", "Pozuelo" ni códigos postales.
-3. CONSULTA Y MODIFICACIÓN DE CITAS:
+   - NUNCA utilices la expresión "Pozuelo de Alarcón y alrededores".
+5. CONSULTA Y MODIFICACIÓN DE CITAS:
    - Cuando el usuario consulte su cita, proporciónale todos los datos disponibles: fecha, hora, dirección completa, correo electrónico y número de cuchillos (junto con la modalidad y notas si existen), y dale explícitamente la opción de modificar cualquier dato que necesite.
    - Si el usuario solicita modificar cualquier dato de su cita (fecha, hora, dirección completa, correo electrónico, número de cuchillos, modalidad o notas), utiliza la herramienta \`update_appointment\` para guardarlo en la base de datos y actualizar el calendario, y muéstrale cómo quedan todos los datos de su cita tras el cambio.
-4. PRIVACIDAD ZERO-TRUST:
+6. PRIVACIDAD ZERO-TRUST:
    - Nunca pidas número de teléfono móvil.
    - Jamás reveles datos de otros usuarios.
 
@@ -753,6 +815,29 @@ const USER_GEMINI_TOOLS = [
               description: 'Correo electrónico actual si la cita no estaba vinculada por Telegram.'
             }
           }
+        }
+      },
+      {
+        name: 'request_human_attention',
+        description:
+          'Solicita atención humana directa de Emil y le envía un aviso inmediato con el motivo y contacto del cliente.',
+        parameters: {
+          type: 'OBJECT',
+          properties: {
+            motivo: {
+              type: 'STRING',
+              description: 'Resumen de la consulta o petición que el cliente quiere tratar directamente con Emil.'
+            },
+            nombre: {
+              type: 'STRING',
+              description: 'Nombre del cliente si se conoce.'
+            },
+            email: {
+              type: 'STRING',
+              description: 'Correo electrónico del cliente para que Emil pueda responderle.'
+            }
+          },
+          required: ['motivo']
         }
       }
     ]
@@ -965,6 +1050,16 @@ export async function runKusinUserAgent({
             summary: `Cita actualizada (${toolResult.cita.fecha} a las ${toolResult.cita.hora_inicio})`
           });
         }
+      } else if (fnName === 'request_human_attention') {
+        toolResult = await notifyEmilHumanAttention({
+          ...fnArgs,
+          channel,
+          ownAppointments
+        });
+        toolEvents.push({
+          tool: 'request_human_attention',
+          summary: 'Aviso de atención humana directa enviado a Emil'
+        });
       }
 
       contents.push({
