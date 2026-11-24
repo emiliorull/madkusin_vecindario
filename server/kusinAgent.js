@@ -38,6 +38,44 @@ function sanitizeTelegramChatId(chatId) {
 }
 
 /**
+ * Convierte una fecha (YYYY-MM-DD o DD/MM/YYYY) al formato de presentación obligatorio dd/mm/aaaa.
+ */
+export function formatDateDDMMYYYY(dateStr) {
+  const clean = String(dateStr || '').trim();
+  const isoMatch = clean.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (isoMatch) {
+    return `${isoMatch[3]}/${isoMatch[2]}/${isoMatch[1]}`;
+  }
+  const dmyMatch = clean.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
+  if (dmyMatch) {
+    return `${String(dmyMatch[1]).padStart(2, '0')}/${String(dmyMatch[2]).padStart(2, '0')}/${dmyMatch[3]}`;
+  }
+  return clean;
+}
+
+/**
+ * Normaliza una fecha en formato dd/mm/aaaa o aaaa-mm-dd al formato ISO YYYY-MM-DD para PocketBase y Google Calendar.
+ */
+export function normalizeDateToIso(dateStr) {
+  const clean = String(dateStr || '').trim();
+  const dmyMatch = clean.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
+  if (dmyMatch) {
+    return `${dmyMatch[3]}-${String(dmyMatch[2]).padStart(2, '0')}-${String(dmyMatch[1]).padStart(2, '0')}`;
+  }
+  return clean.replace(/[^0-9-]/g, '');
+}
+
+/**
+ * Convierte cualquier fecha ISO (YYYY-MM-DD) dentro de un texto libre al formato dd/mm/aaaa.
+ */
+function replaceIsoDatesInText(text) {
+  return String(text || '').replace(
+    /\b(20\d{2})-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])\b/g,
+    '$3/$2/$1'
+  );
+}
+
+/**
  * Normaliza una hora a formato HH:MM válido dentro de 10:00 - 12:59 para cumplir el esquema de PocketBase.
  */
 function normalizeOperatingTime(rawTime) {
@@ -106,7 +144,7 @@ export function formatAppointmentDetailsForTelegram(cita) {
       : 'Afilado in situ a domicilio';
 
   const lines = [
-    `• *Fecha:* ${cita.fecha}`,
+    `• *Fecha:* ${formatDateDDMMYYYY(cita.fecha)}`,
     `• *Hora:* ${cita.hora_inicio}${cita.hora_fin ? ` a ${cita.hora_fin}` : ''} h`,
     `• *Dirección completa:* ${cita.direccion}`,
     `• *Correo electrónico:* ${cita.email}`,
@@ -135,7 +173,7 @@ export async function checkAvailabilityZeroTrust({
 }) {
   const duracion = calculateDurationMinutes(modalidad, num_cuchillos);
   const candidateSlots = ['10:00', '10:30', '11:00', '11:30', '12:00', '12:30'];
-  const safeDate = String(fecha || '').replace(/[^0-9-]/g, '');
+  const safeDate = normalizeDateToIso(fecha);
 
   const occupiedRanges = [];
 
@@ -199,7 +237,8 @@ export async function checkAvailabilityZeroTrust({
 
   return {
     ok: true,
-    fecha: safeDate,
+    fecha: formatDateDDMMYYYY(safeDate),
+    fecha_iso: safeDate,
     modalidad,
     num_cuchillos: Number(num_cuchillos || 1),
     duracion_minutos: duracion,
@@ -235,7 +274,7 @@ export async function createAppointmentInPocketBase(args) {
     duracion_minutos: duracion,
     tiene_enchufe_15m: modalidad === 'in_situ' ? Boolean(args.tiene_enchufe_15m ?? true) : false,
     confirma_filo_liso: true,
-    fecha: String(args.fecha || '').trim(),
+    fecha: normalizeDateToIso(args.fecha),
     hora_inicio: horaInicio,
     hora_fin: horaFin,
     notas: String(args.notas || '').trim(),
@@ -485,7 +524,7 @@ export async function updateUserAppointmentInPocketBase(args, verifiedChatId) {
       ? Math.max(1, Number(args.num_cuchillos))
       : current.num_cuchillos;
   const nextDuracion = calculateDurationMinutes(nextModalidad, nextNumCuchillos);
-  const nextFecha = args.fecha ? String(args.fecha).trim() : current.fecha;
+  const nextFecha = args.fecha ? normalizeDateToIso(args.fecha) : current.fecha;
   const nextHoraInicio =
     args.hora || args.hora_inicio
       ? normalizeOperatingTime(args.hora || args.hora_inicio)
@@ -516,7 +555,7 @@ export async function updateUserAppointmentInPocketBase(args, verifiedChatId) {
     if (startMin < 10 * 60 || startMin + nextDuracion > 13 * 60 + 25) {
       return {
         ok: false,
-        error: `La hora ${nextHoraInicio} queda fuera del horario de mañana (10:00 a 13:00). Horas disponibles para el ${nextFecha}: ${avail.free_times.join(', ') || 'ninguna'}.`
+        error: `La hora ${nextHoraInicio} queda fuera del horario de mañana (10:00 a 13:00). Horas disponibles para el ${formatDateDDMMYYYY(nextFecha)}: ${avail.free_times.join(', ') || 'ninguna'}.`
       };
     }
   }
@@ -659,7 +698,7 @@ export async function notifyEmilHumanAttention({
     telegramLinkLine +
     `• <b>Correo electrónico:</b> ${escapeHtml(contactEmail)}\n` +
     (cita
-      ? `• <b>Cita vinculada:</b> ${escapeHtml(cita.fecha)} a las ${escapeHtml(
+      ? `• <b>Cita vinculada:</b> ${escapeHtml(formatDateDDMMYYYY(cita.fecha))} a las ${escapeHtml(
           cita.hora_inicio
         )} h · ${escapeHtml(cita.direccion)} (${escapeHtml(cita.num_cuchillos)} cuchillos, ${escapeHtml(
           cita.modalidad
@@ -732,6 +771,7 @@ export async function notifyEmilHumanAttention({
  */
 function buildUserAgentSystemPrompt({ ragChunks, ownAppointments, channel }) {
   const todayIso = new Date().toISOString().split('T')[0];
+  const todayFormatted = formatDateDDMMYYYY(todayIso);
   const ragContext = ragChunks
     .map((c, idx) => `[DOCUMENTO ${idx + 1} - ${c.title}]:\n${c.content}`)
     .join('\n\n');
@@ -741,7 +781,7 @@ function buildUserAgentSystemPrompt({ ragChunks, ownAppointments, channel }) {
     if (ownAppointments.length > 0) {
       const sanitizedForPrompt = ownAppointments.map((c) => ({
         nombre: c.nombre,
-        fecha: c.fecha,
+        fecha: formatDateDDMMYYYY(c.fecha),
         hora: `${c.hora_inicio} a ${c.hora_fin}`,
         direccion_completa: c.direccion,
         correo_electronico: c.email,
@@ -757,7 +797,7 @@ function buildUserAgentSystemPrompt({ ragChunks, ownAppointments, channel }) {
         sanitizedForPrompt,
         null,
         2
-      )}\n- Cuando el usuario consulte su cita, muéstrale TODOS estos datos disponibles (fecha, hora, dirección completa, correo electrónico y número de cuchillos, además de modalidad y notas si las hay) y ofrécele siempre la opción de modificar cualquier dato que necesite.\n- Si el usuario pide cambiar o modificar cualquier dato de su cita (fecha, hora, dirección, correo electrónico, número de cuchillos, modalidad, notas o cancelarla), ejecuta la herramienta \`update_appointment\` y confirma los datos actualizados.`;
+      )}\n- Cuando el usuario consulte su cita, muéstrale TODOS estos datos disponibles (fecha en formato dd/mm/aaaa, hora, dirección completa, correo electrónico y número de cuchillos, además de modalidad y notas si las hay) y ofrécele siempre la opción de modificar cualquier dato que necesite.\n- Si el usuario pide cambiar o modificar cualquier dato de su cita (fecha, hora, dirección, correo electrónico, número de cuchillos, modalidad, notas o cancelarla), ejecuta la herramienta \`update_appointment\` y confirma los datos actualizados.`;
     } else {
       personalDataSection = `ESTADO DE CITA EN ESTE CHAT DE TELEGRAM: Aún no hay ninguna cita vinculada automáticamente a este chat. Si el usuario pregunta por su cita o quiere consultarla/modificarla, pídele el correo electrónico con el que reservó y usa la herramienta \`lookup_appointment_by_email\` para localizarla, vincularla y mostrarle todos sus datos.`;
     }
@@ -766,7 +806,7 @@ function buildUserAgentSystemPrompt({ ragChunks, ownAppointments, channel }) {
   }
 
   return `Eres Kusin, el asistente técnico de inteligencia artificial del taller de afilado de Emil (MadKusin · vecindario.madkusin.com).
-Fecha actual: ${todayIso}. Canal: ${channel}.
+Fecha actual: ${todayFormatted} (ISO: ${todayIso}). Canal: ${channel}.
 
 DIRECTRICES FUNDAMENTALES Y OBLIGATORIAS:
 1. ÁMBITO EXCLUSIVO DE RESPUESTA (SOLO TEMAS DE MADKUSIN):
@@ -778,19 +818,21 @@ DIRECTRICES FUNDAMENTALES Y OBLIGATORIAS:
      * Zonas de recogida y servicio a domicilio
      * Citas de MadKusin (disponibilidad, reserva, consulta de todos los datos de la cita y modificación de citas)
    - DECLINACIÓN AMABLE FUERA DE ÁMBITO: Si el usuario realiza cualquier consulta ajena al negocio (política, informática, matemáticas, cultura general, recetas no relacionadas con el corte/cuchillos o cualquier otro tema externo), declina amablemente responder explicando que eres el asistente especializado de MadKusin y que solo puedes atender consultas sobre servicios de afilado, cuidado y tipos de cuchillos, tarifas, zonas de recogida y citas de MadKusin.
-2. VÍA FÁCIL DE ATENCIÓN HUMANA DIRECTA:
+2. VÍA FÁCIL DE ATENCIÓN HUMANA DIRECTA Y CONFIRMACIÓN AL USUARIO:
    - Incluye siempre una vía fácil para que el cliente pueda solicitar atención humana directa con Emil si lo necesita (diciéndote por aquí mismo que quiere hablar con Emil o atención personal para que ejecutes \`request_human_attention\`, o escribiendo directamente a **emil@madkusin.com**).
-   - Cuando el cliente pida atención humana directa o hablar con Emil, ejecuta la herramienta \`request_human_attention\` para avisar inmediatamente a Emil y facilítale también el correo directo **emil@madkusin.com**.
-3. SIN RESPUESTAS PREESTABLECIDAS:
+   - Cuando el cliente pida atención humana directa o hablar con Emil, ejecuta SIEMPRE la herramienta \`request_human_attention\` para avisar inmediatamente al bot privado de Emil y, una vez enviado el aviso, envía un mensaje al usuario confirmando expresamente que se ha avisado a Emil y que se pondrá en contacto con él a la mayor brevedad posible.
+3. FORMATO DE FECHAS OBLIGATORIO (dd/mm/aaaa):
+   - Siempre que envíes o menciones cualquier fecha al usuario, escríbela en formato **dd/mm/aaaa** (por ejemplo, ${todayFormatted}). Nunca muestres fechas en formato aaaa-mm-dd.
+4. SIN RESPUESTAS PREESTABLECIDAS:
    - Responde a todas las preguntas del usuario (dentro del ámbito de MadKusin) de forma natural, clara, precisa y directa basándote en la DOCUMENTACIÓN TÉCNICA Y DE SERVICIO PROPORCIONADA más abajo.
    - No utilices plantillas rígidas ni repitas eslóganes prefabricados; contesta exactamente a lo que el usuario pregunta usando el conocimiento de la documentación.
-4. SIN CÓDIGOS INTERNOS NI REFERENCIAS A "POZUELO DE ALARCÓN Y ALREDEDORES":
+5. SIN CÓDIGOS INTERNOS NI REFERENCIAS A "POZUELO DE ALARCÓN Y ALREDEDORES":
    - NUNCA muestres códigos internos de base de datos (como #coie0i6n3p6e93r o IDs alfanuméricos).
    - NUNCA utilices la expresión "Pozuelo de Alarcón y alrededores".
-5. CONSULTA Y MODIFICACIÓN DE CITAS:
-   - Cuando el usuario consulte su cita, proporciónale todos los datos disponibles: fecha, hora, dirección completa, correo electrónico y número de cuchillos (junto con la modalidad y notas si existen), y dale explícitamente la opción de modificar cualquier dato que necesite.
+6. CONSULTA Y MODIFICACIÓN DE CITAS:
+   - Cuando el usuario consulte su cita, proporciónale todos los datos disponibles: fecha (en formato dd/mm/aaaa), hora, dirección completa, correo electrónico y número de cuchillos (junto con la modalidad y notas si existen), y dale explícitamente la opción de modificar cualquier dato que necesite.
    - Si el usuario solicita modificar cualquier dato de su cita (fecha, hora, dirección completa, correo electrónico, número de cuchillos, modalidad o notas), utiliza la herramienta \`update_appointment\` para guardarlo en la base de datos y actualizar el calendario, y muéstrale cómo quedan todos los datos de su cita tras el cambio.
-6. PRIVACIDAD ZERO-TRUST:
+7. PRIVACIDAD ZERO-TRUST:
    - Nunca pidas número de teléfono móvil.
    - Jamás reveles datos de otros usuarios.
 
@@ -1076,6 +1118,11 @@ export async function runKusinUserAgent({
 
   const toolEvents = [];
   let bookedAppointment = null;
+  let humanAttentionSent = false;
+  const isExplicitHumanRequest =
+    /\b(hablar con emil|atenci[oó]n humana|atenci[oó]n personal|hablar con una persona|que me contacte emil|contactar con emil|avisa a emil|avisar a emil|p[oó]nme con emil|pasar con emil|que emil me escriba|que me escriba emil)\b/i.test(
+      cleanMsg
+    );
 
   try {
     let geminiData = await callGeminiGenerateContent({
@@ -1103,7 +1150,9 @@ export async function runKusinUserAgent({
         });
         toolEvents.push({
           tool: 'check_availability',
-          summary: `Huecos libres el ${toolResult.fecha}: ${toolResult.free_times.join(', ') || 'sin huecos'}`
+          summary: `Huecos libres el ${formatDateDDMMYYYY(toolResult.fecha)}: ${
+            toolResult.free_times.join(', ') || 'sin huecos'
+          }`
         });
       } else if (fnName === 'book_appointment') {
         toolResult = await createAppointmentInPocketBase({
@@ -1115,7 +1164,9 @@ export async function runKusinUserAgent({
           bookedAppointment = toolResult.appointment;
           toolEvents.push({
             tool: 'book_appointment',
-            summary: `Cita confirmada (${toolResult.appointment.fecha} a las ${toolResult.appointment.hora})`
+            summary: `Cita confirmada (${formatDateDDMMYYYY(toolResult.appointment.fecha)} a las ${
+              toolResult.appointment.hora
+            })`
           });
         }
       } else if (fnName === 'lookup_appointment_by_email') {
@@ -1124,7 +1175,9 @@ export async function runKusinUserAgent({
           ownAppointments = [toolResult.cita];
           toolEvents.push({
             tool: 'lookup_appointment_by_email',
-            summary: `Cita localizada para ${toolResult.cita.email} (${toolResult.cita.fecha} ${toolResult.cita.hora_inicio})`
+            summary: `Cita localizada para ${toolResult.cita.email} (${formatDateDDMMYYYY(
+              toolResult.cita.fecha
+            )} ${toolResult.cita.hora_inicio})`
           });
         }
       } else if (fnName === 'update_appointment') {
@@ -1134,7 +1187,9 @@ export async function runKusinUserAgent({
           bookedAppointment = toolResult.cita;
           toolEvents.push({
             tool: 'update_appointment',
-            summary: `Cita actualizada (${toolResult.cita.fecha} a las ${toolResult.cita.hora_inicio})`
+            summary: `Cita actualizada (${formatDateDDMMYYYY(toolResult.cita.fecha)} a las ${
+              toolResult.cita.hora_inicio
+            })`
           });
         }
       } else if (fnName === 'request_human_attention') {
@@ -1145,6 +1200,7 @@ export async function runKusinUserAgent({
           telegramUser,
           ownAppointments
         });
+        humanAttentionSent = true;
         toolEvents.push({
           tool: 'request_human_attention',
           summary: 'Aviso de atención humana directa enviado a Emil'
@@ -1179,15 +1235,47 @@ export async function runKusinUserAgent({
       });
     }
 
+    // Si el usuario pidió explícitamente hablar con Emil y el modelo no invocó la herramienta, ejecutarla igualmente
+    if (isExplicitHumanRequest && !humanAttentionSent) {
+      await notifyEmilHumanAttention({
+        motivo: cleanMsg,
+        channel,
+        verifiedTelegramChatId,
+        telegramUser,
+        ownAppointments
+      });
+      humanAttentionSent = true;
+      toolEvents.push({
+        tool: 'request_human_attention',
+        summary: 'Aviso de atención humana directa enviado a Emil'
+      });
+    }
+
     let replyText =
       geminiData?.candidates?.[0]?.content?.parts
         ?.filter((p) => !p.thought)
         ?.map((p) => p.text || '')
         .join(' ')
-        .trim() || buildDocumentationDirectReply(ragChunks, ownAppointments);
+        .trim() || '';
 
-    // Eliminar cualquier mención accidental a "Pozuelo de Alarcón y alrededores"
-    replyText = replyText
+    // Garantizar el mensaje de confirmación al usuario una vez enviado el aviso al bot privado de Emil
+    if (humanAttentionSent) {
+      const confirmationMsg =
+        '✅ He avisado directamente a Emil de tu solicitud y se pondrá en contacto contigo a la mayor brevedad posible.';
+      if (
+        !replyText ||
+        (!/mayor brevedad/i.test(replyText) && !/avisado.*emil/i.test(replyText))
+      ) {
+        replyText = replyText ? `${confirmationMsg}\n\n${replyText}` : confirmationMsg;
+      }
+    }
+
+    if (!replyText) {
+      replyText = buildDocumentationDirectReply(ragChunks, ownAppointments);
+    }
+
+    // Asegurar formato de fecha dd/mm/aaaa y eliminar referencias geográficas no deseadas
+    replyText = replaceIsoDatesInText(replyText)
       .replace(/\s*en\s+\*?Pozuelo de Alarcón y alrededores\*?/gi, '')
       .replace(/Pozuelo de Alarcón y alrededores/gi, '');
 
@@ -1298,7 +1386,7 @@ export async function runKusinAdminAgent({ message, adminName = 'Emil' }) {
             .slice(0, 8)
             .map(
               (c) =>
-                `  - *${c.fecha} ${c.hora_inicio}* · ${c.nombre} (${c.email}) · ${c.num_cuchillos} cuchillos (${c.modalidad}) · ${c.direccion}`
+                `  - *${formatDateDDMMYYYY(c.fecha)} ${c.hora_inicio}* · ${c.nombre} (${c.email}) · ${c.num_cuchillos} cuchillos (${c.modalidad}) · ${c.direccion}`
             )
             .join('\n')
         : '  (Sin citas registradas)') +
@@ -1309,7 +1397,10 @@ export async function runKusinAdminAgent({ message, adminName = 'Emil' }) {
     );
   }
 
-  const allCitas = await listAllPocketBaseAppointments(15);
+  const allCitas = (await listAllPocketBaseAppointments(15)).map((c) => ({
+    ...c,
+    fecha: formatDateDDMMYYYY(c.fecha)
+  }));
   const ragChunks = ragEngine.search(text, 6);
   const ragContext = ragChunks
     .map((c, idx) => `[FRAGMENTO ${idx + 1} - ${c.title} (${c.source})]:\n${c.content}`)
@@ -1331,7 +1422,7 @@ ${ragContext}
 
 INSTRUCCIONES PARA RESPONDER A EMIL:
 - Si Emil te hace una pregunta técnica sobre cuchillos, aceros o sobre un documento que acaba de subir (aunque esté en inglés), respóndele en español con precisión basándote en la documentación.
-- Si Emil te pregunta por sus citas o agenda, dale todos los detalles completos (fechas, horarios, nombres, direcciones completas, correos electrónicos y número de cuchillos).`;
+- Si Emil te pregunta por sus citas o agenda, dale todos los detalles completos (fechas siempre en formato dd/mm/aaaa, horarios, nombres, direcciones completas, correos electrónicos y número de cuchillos).`;
 
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey || apiKey === 'tu_clave_privada_gemini_aqui') {
@@ -1352,10 +1443,13 @@ INSTRUCCIONES PARA RESPONDER A EMIL:
       tools: []
     });
 
-    return (
-      geminiData?.candidates?.[0]?.content?.parts?.map((p) => p.text || '').join(' ').trim() ||
-      'Consulta procesada en el canal privado.'
-    );
+    const rawReply =
+      geminiData?.candidates?.[0]?.content?.parts
+        ?.filter((p) => !p.thought)
+        ?.map((p) => p.text || '')
+        .join(' ')
+        .trim() || 'Consulta procesada en el canal privado.';
+    return replaceIsoDatesInText(rawReply);
   } catch (err) {
     console.error('[KusinAdminAgent] Fallback RAG en canal admin:', err.message);
     const topChunks = ragChunks.slice(0, 2);

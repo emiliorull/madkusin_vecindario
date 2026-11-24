@@ -81,19 +81,48 @@ export function validatePostalCode(postalCode) {
 }
 
 /**
- * Comprueba si una fecha YYYY-MM-DD cae de Lunes (1) a Viernes (5) y no es pasada.
- * @param {string} dateStr Formato YYYY-MM-DD
+ * Convierte una fecha (YYYY-MM-DD o DD/MM/YYYY) al formato de presentación dd/mm/aaaa.
+ */
+export function formatDateDDMMYYYY(dateStr) {
+  const clean = String(dateStr || '').trim();
+  const isoMatch = clean.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (isoMatch) {
+    return `${isoMatch[3]}/${isoMatch[2]}/${isoMatch[1]}`;
+  }
+  const dmyMatch = clean.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
+  if (dmyMatch) {
+    return `${String(dmyMatch[1]).padStart(2, '0')}/${String(dmyMatch[2]).padStart(2, '0')}/${dmyMatch[3]}`;
+  }
+  return clean;
+}
+
+/**
+ * Normaliza una fecha en formato dd/mm/aaaa o aaaa-mm-dd al formato ISO YYYY-MM-DD para la base de datos.
+ */
+export function normalizeDateToIso(dateStr) {
+  const clean = String(dateStr || '').trim();
+  const dmyMatch = clean.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
+  if (dmyMatch) {
+    return `${dmyMatch[3]}-${String(dmyMatch[2]).padStart(2, '0')}-${String(dmyMatch[1]).padStart(2, '0')}`;
+  }
+  return clean;
+}
+
+/**
+ * Comprueba si una fecha YYYY-MM-DD (o DD/MM/YYYY) cae de Lunes (1) a Viernes (5) y no es pasada.
+ * @param {string} dateStr Formato YYYY-MM-DD o DD/MM/YYYY
  * @returns {{ valid: boolean, reason?: string, dayOfWeek?: number }}
  */
 export function validateOperatingDate(dateStr) {
-  if (!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+  const isoDate = normalizeDateToIso(dateStr);
+  if (!isoDate || !/^\d{4}-\d{2}-\d{2}$/.test(isoDate)) {
     return {
       valid: false,
-      reason: 'Selecciona una fecha válida en formato AAAA-MM-DD.'
+      reason: 'Selecciona una fecha válida en formato dd/mm/aaaa.'
     };
   }
 
-  const [year, month, day] = dateStr.split('-').map(Number);
+  const [year, month, day] = isoDate.split('-').map(Number);
   const selectedDate = new Date(year, month - 1, day, 12, 0, 0);
 
   if (Number.isNaN(selectedDate.getTime())) {

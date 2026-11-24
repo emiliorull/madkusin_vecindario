@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import {
   calculateAppointmentDuration,
+  formatDateDDMMYYYY,
   getDurationBreakdown,
   getUpcomingBusinessDays,
   validateOperatingDate,
@@ -228,8 +229,8 @@ export default function BookingSection({
                   Fecha y Franja Reservada
                 </span>
                 <p className="font-bold text-stone-900 text-base mt-0.5">
-                  {confirmedAppointment.fecha} · {confirmedAppointment.hora_inicio} a{' '}
-                  {confirmedAppointment.hora_fin} h
+                  {formatDateDDMMYYYY(confirmedAppointment.fecha)} ·{' '}
+                  {confirmedAppointment.hora_inicio} a {confirmedAppointment.hora_fin} h
                 </p>
                 <p className="text-xs text-stone-600 mt-0.5">
                   Duración estimada: {confirmedAppointment.duracion_minutos} minutos
@@ -613,7 +614,7 @@ export default function BookingSection({
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold uppercase tracking-wider text-stone-600">
-                  Horas libres para el {fecha}
+                  Horas libres para el {formatDateDDMMYYYY(fecha)}
                 </span>
                 {loadingSlots && (
                   <span className="inline-flex items-center gap-1.5 text-xs text-stone-500">

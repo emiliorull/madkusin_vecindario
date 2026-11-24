@@ -8,6 +8,7 @@
 import {
   calculateAppointmentDuration,
   computeAvailableSlots,
+  formatDateDDMMYYYY,
   validateOperatingDate,
   validateOperatingTime,
   validatePostalCode,
@@ -80,7 +81,7 @@ export async function checkAvailability({ fecha, modalidad = 'in_situ', num_cuch
           slots: normalizedSlots,
           message:
             normalizedSlots.length > 0
-              ? `Disponibilidad verificada para el ${fecha}. Duración estimada: ${duracion_minutos} minutos.`
+              ? `Disponibilidad verificada para el ${formatDateDDMMYYYY(fecha)}. Duración estimada: ${duracion_minutos} minutos.`
               : 'No quedan huecos libres esa mañana. Por favor, prueba con otro día laborable.'
         };
       }
@@ -138,7 +139,7 @@ export async function checkAvailability({ fecha, modalidad = 'in_situ', num_cuch
           slots: normalizedSlots,
           message:
             normalizedSlots.length > 0
-              ? `Disponibilidad verificada para el ${fecha}. Duración estimada: ${duracion_minutos} minutos.`
+              ? `Disponibilidad verificada para el ${formatDateDDMMYYYY(fecha)}. Duración estimada: ${duracion_minutos} minutos.`
               : 'No quedan huecos libres esa mañana. Por favor, prueba con otro día laborable.'
         };
       }

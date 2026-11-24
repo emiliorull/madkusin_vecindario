@@ -13,6 +13,7 @@ import {
   X
 } from 'lucide-react';
 import { VoiceAgentService } from '../services/voice/VoiceAgentService';
+import { formatDateDDMMYYYY } from '../utils/scheduling';
 
 const STATUS_LABELS = {
   idle: { label: 'Desconectado', color: 'bg-stone-500', badge: 'bg-stone-800 text-stone-300' },
@@ -300,7 +301,7 @@ export default function VoiceAssistantModal({
               <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
               <div>
                 <strong className="block text-white">
-                  ¡Cita confirmada para el {bookedInSession.fecha} a las{' '}
+                  ¡Cita confirmada para el {formatDateDDMMYYYY(bookedInSession.fecha)} a las{' '}
                   {bookedInSession.hora_inicio || bookedInSession.hora} h sincronizada en tu
                   pantalla!
                 </strong>
