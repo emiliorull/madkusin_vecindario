@@ -4,9 +4,10 @@ import {
   MicOff,
   PhoneOff,
   Volume2,
+  MessageSquareText,
   Send,
   Sparkles,
-  Subtitles,
+  BookOpen,
   CheckCircle2,
   Terminal,
   X
@@ -16,17 +17,17 @@ import { VoiceAgentService } from '../services/voice/VoiceAgentService';
 const STATUS_LABELS = {
   idle: { label: 'Desconectado', color: 'bg-stone-500', badge: 'bg-stone-800 text-stone-300' },
   connecting: {
-    label: 'Conectando con el taller...',
+    label: 'Conectando con Kusin...',
     color: 'bg-amber-400 animate-pulse',
     badge: 'bg-amber-500/20 text-amber-300 border-amber-500/40'
   },
   listening: {
-    label: 'Escuchando',
+    label: 'Listo',
     color: 'bg-emerald-400 animate-ping',
     badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
   },
   thinking: {
-    label: 'Pensando',
+    label: 'Consultando base científica...',
     color: 'bg-sky-400 animate-pulse',
     badge: 'bg-sky-500/20 text-sky-300 border-sky-500/40'
   },
@@ -42,10 +43,10 @@ export default function VoiceAssistantModal({
   onClose,
   onAppointmentBooked
 }) {
+  // Modo de interacción elegible por el usuario: 'text' (Chat por Texto) o 'voice' (Hablar por Voz)
+  const [interactionMode, setInteractionMode] = useState('text');
   const [status, setStatus] = useState('connecting');
-  const [providerInfo, setProviderInfo] = useState({ provider: 'gemini', mode: 'connecting' });
-  const [isMuted, setIsMuted] = useState(false);
-  const [showTranscript, setShowTranscript] = useState(true);
+  const [isMuted, setIsMuted] = useState(true);
   const [transcripts, setTranscripts] = useState([]);
   const [toolEvents, setToolEvents] = useState([]);
   const [audioLevel, setAudioLevel] = useState(0.15);
@@ -63,10 +64,12 @@ export default function VoiceAssistantModal({
     setToolEvents([]);
     setErrorMessage('');
     setBookedInSession(null);
-    setIsMuted(false);
+    setInteractionMode('text');
+    setIsMuted(true);
 
     const voiceService = new VoiceAgentService({
       onStateChange: (newState) => setStatus(newState),
+      onMuteChange: (mutedState) => setIsMuted(mutedState),
       onTranscript: (entry) => {
         setTranscripts((prev) => [...prev, entry]);
       },
@@ -82,10 +85,7 @@ export default function VoiceAssistantModal({
     });
 
     serviceRef.current = voiceService;
-
-    voiceService.startSession().then((info) => {
-      if (info) setProviderInfo(info);
-    });
+    voiceService.startSession('text');
 
     return () => {
       voiceService.stopSession();
@@ -98,6 +98,13 @@ export default function VoiceAssistantModal({
   }, [transcripts, toolEvents]);
 
   if (!isOpen) return null;
+
+  const handleSelectMode = (newMode) => {
+    setInteractionMode(newMode);
+    const shouldMute = newMode === 'text';
+    setIsMuted(shouldMute);
+    serviceRef.current?.setInteractionMode(newMode);
+  };
 
   const handleToggleMute = () => {
     const nextMuted = !isMuted;
@@ -124,7 +131,7 @@ export default function VoiceAssistantModal({
 
   const currentStatus = STATUS_LABELS[status] || STATUS_LABELS.listening;
 
-  // Generador de alturas de barras para el visualizador de ondas en tiempo real
+  // Generador de alturas de barras para el visualizador de ondas en modo Voz
   const waveBars = Array.from({ length: 24 }, (_, idx) => {
     const centerFactor = 1 - Math.abs(idx - 11.5) / 13;
     const activeMultiplier =
@@ -146,181 +153,183 @@ export default function VoiceAssistantModal({
         <div className="px-6 py-4 bg-stone-950/70 border-b border-stone-800 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-kusin-terra text-white flex items-center justify-center">
-              <Volume2 className="w-5 h-5" />
+              {interactionMode === 'voice' ? (
+                <Volume2 className="w-5 h-5" />
+              ) : (
+                <MessageSquareText className="w-5 h-5" />
+              )}
             </div>
             <div>
               <h2 id="voice-modal-title" className="font-serif font-bold text-lg text-white">
-                Kusin · Asistente IA del Taller de Emil (28224)
+                Kusin · Agente Técnico IA del Taller de Emil
               </h2>
-              <p className="text-xs text-stone-400">
-                {providerInfo.provider === 'gemini'
-                  ? 'Conectado a Gemini Multimodal Live API'
-                  : providerInfo.provider === 'elevenlabs'
-                  ? 'Conectado a ElevenLabs Conversational AI'
-                  : 'Modo Voz Híbrido Activo (Web Speech es-ES + Function Calling)'}
+              <p className="text-xs text-stone-400 flex items-center gap-1.5">
+                <BookOpen className="w-3.5 h-3.5 text-amber-400" />
+                <span>Base Científica de Metalurgia y Afilado (Banda + Strop) · Privacidad Zero-Trust</span>
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Indicador de Estado: Escuchando, Pensando, Hablando */}
             <span
               className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold border ${currentStatus.badge}`}
             >
               <span className={`w-2 h-2 rounded-full ${currentStatus.color}`} />
-              {currentStatus.label}
+              {interactionMode === 'voice' && status === 'listening' && !isMuted
+                ? 'Escuchando voz'
+                : currentStatus.label}
             </span>
 
             <button
               type="button"
               onClick={handleHangUp}
               className="p-2 rounded-xl text-stone-400 hover:text-white hover:bg-stone-800 transition-colors"
-              aria-label="Cerrar asistente de voz"
+              aria-label="Cerrar asistente"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
         </div>
 
-        {/* Visualizador de Ondas de Audio en Tiempo Real */}
-        <div className="px-6 py-6 bg-gradient-to-b from-stone-900 to-stone-950 border-b border-stone-800 flex flex-col items-center justify-center space-y-3">
-          <div
-            className="h-20 w-full max-w-md flex items-center justify-center gap-1.5"
-            aria-label={`Estado del asistente: ${currentStatus.label}`}
-          >
-            {waveBars.map((height, idx) => (
-              <span
-                key={idx}
-                style={{ height: `${isMuted ? 12 : height}%` }}
-                className={`w-1.5 rounded-full transition-all duration-150 ${
-                  isMuted
-                    ? 'bg-stone-700'
-                    : status === 'speaking'
-                    ? 'bg-amber-400'
-                    : status === 'thinking'
-                    ? 'bg-sky-400'
-                    : 'bg-emerald-400'
-                }`}
-              />
-            ))}
+        {/* Selector cómodo de Modo: Chat por Texto vs. Hablar por Voz */}
+        <div className="px-6 py-3 bg-stone-950/90 border-b border-stone-800 flex items-center justify-between gap-3 flex-wrap">
+          <span className="text-xs text-stone-400 font-medium">
+            Elige cómo prefieres comunicarte con Kusin:
+          </span>
+          <div className="inline-flex rounded-xl bg-stone-900 p-1 border border-stone-700">
+            <button
+              type="button"
+              onClick={() => handleSelectMode('text')}
+              className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                interactionMode === 'text'
+                  ? 'bg-amber-500 text-stone-950 shadow'
+                  : 'text-stone-300 hover:text-white'
+              }`}
+            >
+              <MessageSquareText className="w-3.5 h-3.5" />
+              <span>Chat por Texto</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSelectMode('voice')}
+              className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                interactionMode === 'voice'
+                  ? 'bg-amber-500 text-stone-950 shadow'
+                  : 'text-stone-300 hover:text-white'
+              }`}
+            >
+              <Mic className="w-3.5 h-3.5" />
+              <span>Hablar por Voz</span>
+            </button>
           </div>
-
-          <p className="text-xs text-stone-400 text-center">
-            {isMuted
-              ? 'Micrófono silenciado. Pulsa "Activar micro" o escribe abajo.'
-              : status === 'speaking'
-              ? 'Kusin (asistente del taller de Emil) está hablando...'
-              : status === 'thinking'
-              ? 'Consultando disponibilidad y reglas del taller de Emil...'
-              : 'Habla con naturalidad con Kusin o usa las respuestas rápidas de abajo'}
-          </p>
         </div>
 
-        {/* Área de Transcripción en Pantalla para Accesibilidad */}
-        {showTranscript && (
-          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3 bg-stone-900/90 min-h-[210px] max-h-[320px]">
-            {transcripts.map((item, index) => (
-              <div
-                key={index}
-                className={`flex flex-col ${
-                  item.role === 'user' ? 'items-end' : 'items-start'
-                }`}
-              >
-                <div
-                  className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-                    item.role === 'user'
-                      ? 'bg-kusin-terra text-white rounded-br-none'
-                      : 'bg-stone-800 text-stone-100 border border-stone-700 rounded-bl-none'
+        {/* Visualizador de Ondas de Audio (visible únicamente cuando el usuario elige Modo Voz) */}
+        {interactionMode === 'voice' && (
+          <div className="px-6 py-4 bg-gradient-to-b from-stone-900 to-stone-950 border-b border-stone-800 flex flex-col items-center justify-center space-y-2">
+            <div
+              className="h-14 w-full max-w-md flex items-center justify-center gap-1.5"
+              aria-label={`Estado del asistente: ${currentStatus.label}`}
+            >
+              {waveBars.map((height, idx) => (
+                <span
+                  key={idx}
+                  style={{ height: `${isMuted ? 12 : height}%` }}
+                  className={`w-1.5 rounded-full transition-all duration-150 ${
+                    isMuted
+                      ? 'bg-stone-700'
+                      : status === 'speaking'
+                      ? 'bg-amber-400'
+                      : status === 'thinking'
+                      ? 'bg-sky-400'
+                      : 'bg-emerald-400'
                   }`}
-                >
-                  <p>{item.text}</p>
-                </div>
-                <span className="text-[11px] text-stone-500 mt-1 px-1">
-                  {item.role === 'user' ? 'Tú' : 'Kusin (Asistente de Emil)'} · {item.timestamp}
-                </span>
-              </div>
-            ))}
+                />
+              ))}
+            </div>
 
-            {/* Eventos de Tool Calling ejecutados */}
-            {toolEvents.map((evt, idx) => (
-              <div
-                key={`tool-${idx}`}
-                className="flex items-center gap-2 text-xs bg-stone-950 border border-stone-800 text-amber-300 px-3 py-2 rounded-xl"
-              >
-                <Terminal className="w-3.5 h-3.5 shrink-0" />
-                <span>Herramienta ejecutada: {evt.summary}</span>
-              </div>
-            ))}
-
-            {bookedInSession && (
-              <div className="p-4 rounded-2xl bg-emerald-950/80 border border-emerald-500/60 text-emerald-100 text-xs sm:text-sm flex items-start gap-3">
-                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
-                <div>
-                  <strong className="block text-white">
-                    ¡Cita #{bookedInSession.cita_id} sincronizada en tu pantalla!
-                  </strong>
-                  <span>
-                    Al cerrar esta ventana verás tu resumen y el botón de Telegram para recibir
-                    recordatorios sin dar tu móvil.
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {errorMessage && (
-              <p className="text-xs text-amber-300 bg-amber-950/60 border border-amber-700/50 rounded-xl p-3">
-                {errorMessage}
-              </p>
-            )}
-
-            <div ref={transcriptEndRef} />
+            <p className="text-xs text-stone-400 text-center">
+              {isMuted
+                ? 'Micrófono en pausa. Pulsa "Activar micro" o escribe abajo.'
+                : status === 'speaking'
+                ? 'Kusin está explicando por voz...'
+                : status === 'thinking'
+                ? 'Analizando documentación técnica y agenda de Emil...'
+                : 'Habla por tu micrófono para preguntar sobre cuchillos, afilado o reservar cita'}
+            </p>
           </div>
         )}
 
-        {/* Sugerencias rápidas de prueba / accesibilidad */}
-        <div className="px-6 py-2.5 bg-stone-950/60 border-t border-stone-800 flex items-center gap-2 overflow-x-auto no-scrollbar">
-          <span className="text-[11px] text-stone-400 shrink-0 flex items-center gap-1">
-            <Sparkles className="w-3 h-3 text-amber-400" />
-            Respuestas rápidas:
-          </span>
-          <button
-            type="button"
-            onClick={() => handleQuickReply('Sí, vivo en el código postal 28224')}
-            className="text-xs px-2.5 py-1 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-200 shrink-0 border border-stone-700"
-          >
-            "Sí, vivo en el 28224"
-          </button>
-          <button
-            type="button"
-            onClick={() => handleQuickReply('Prefiero afilado in situ y tengo enchufe a menos de 15m')}
-            className="text-xs px-2.5 py-1 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-200 shrink-0 border border-stone-700"
-          >
-            "In situ con enchufe &lt;15m"
-          </button>
-          <button
-            type="button"
-            onClick={() => handleQuickReply('Son 4 cuchillos de filo liso')}
-            className="text-xs px-2.5 py-1 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-200 shrink-0 border border-stone-700"
-          >
-            "4 cuchillos de filo liso"
-          </button>
-          <button
-            type="button"
-            onClick={() => handleQuickReply('¿Qué precio tiene afilar el resto de cuchillos?')}
-            className="text-xs px-2.5 py-1 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-200 shrink-0 border border-stone-700"
-          >
-            "¿Qué tarifas tenéis?"
-          </button>
+        {/* Área de Conversación y Respuestas Científicas */}
+        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3 bg-stone-900/90 min-h-[250px] max-h-[380px]">
+          {transcripts.map((item, index) => (
+            <div
+              key={index}
+              className={`flex flex-col ${
+                item.role === 'user' ? 'items-end' : 'items-start'
+              }`}
+            >
+              <div
+                className={`max-w-[88%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                  item.role === 'user'
+                    ? 'bg-kusin-terra text-white rounded-br-none'
+                    : 'bg-stone-800 text-stone-100 border border-stone-700 rounded-bl-none'
+                }`}
+              >
+                <p>{item.text}</p>
+              </div>
+              <span className="text-[11px] text-stone-500 mt-1 px-1">
+                {item.role === 'user' ? 'Tú' : 'Kusin · Agente Técnico de Emil'} · {item.timestamp}
+              </span>
+            </div>
+          ))}
+
+          {/* Eventos de Tool Calling ejecutados */}
+          {toolEvents.map((evt, idx) => (
+            <div
+              key={`tool-${idx}`}
+              className="flex items-center gap-2 text-xs bg-stone-950 border border-stone-800 text-amber-300 px-3 py-2 rounded-xl"
+            >
+              <Terminal className="w-3.5 h-3.5 shrink-0" />
+              <span>Agenda verificada: {evt.summary}</span>
+            </div>
+          ))}
+
+          {bookedInSession && (
+            <div className="p-4 rounded-2xl bg-emerald-950/80 border border-emerald-500/60 text-emerald-100 text-xs sm:text-sm flex items-start gap-3">
+              <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+              <div>
+                <strong className="block text-white">
+                  ¡Cita confirmada para el {bookedInSession.fecha} a las{' '}
+                  {bookedInSession.hora_inicio || bookedInSession.hora} h sincronizada en tu
+                  pantalla!
+                </strong>
+                <span>
+                  Al cerrar esta ventana verás tu resumen y el botón de Telegram para recibir el
+                  aviso, consultar todos los datos de tu cita o modificar lo que necesites sin dar
+                  tu móvil.
+                </span>
+              </div>
+            </div>
+          )}
+
+          {errorMessage && (
+            <p className="text-xs text-amber-300 bg-amber-950/60 border border-amber-700/50 rounded-xl p-3">
+              {errorMessage}
+            </p>
+          )}
+
+          <div ref={transcriptEndRef} />
         </div>
 
-        {/* Entrada por teclado accesible + Controles de Voz (Silenciar / Colgar) */}
-        <div className="p-4 sm:p-5 bg-stone-950 border-t border-stone-800 space-y-4">
+        {/* Entrada por teclado + Controles */}
+        <div className="p-4 sm:p-5 bg-stone-950 border-t border-stone-800 space-y-3">
           <form onSubmit={handleSendText} className="flex items-center gap-2">
             <input
               type="text"
               value={textInput}
               onChange={(e) => setTextInput(e.target.value)}
-              placeholder="Habla por el micrófono o escribe aquí tu respuesta..."
+              placeholder="Escribe cualquier pregunta técnica sobre cuchillos, afilado o tu reserva..."
               className="flex-1 px-4 py-2.5 rounded-xl bg-stone-900 border border-stone-700 text-sm text-white placeholder-stone-500 focus:border-amber-500 outline-none"
             />
             <button
@@ -328,48 +337,40 @@ export default function VoiceAssistantModal({
               className="px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-sm font-bold inline-flex items-center gap-1.5"
             >
               <Send className="w-4 h-4" />
-              <span>Enviar</span>
+              <span>Preguntar</span>
             </button>
           </form>
 
           <div className="flex items-center justify-between gap-3">
-            {/* Botón Mostrar/Ocultar Transcripción */}
-            <button
-              type="button"
-              onClick={() => setShowTranscript((prev) => !prev)}
-              className={`inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold border transition-colors ${
-                showTranscript
-                  ? 'bg-stone-800 text-stone-200 border-stone-700'
-                  : 'bg-stone-900 text-stone-400 border-stone-800'
-              }`}
-            >
-              <Subtitles className="w-4 h-4" />
-              <span>{showTranscript ? 'Ocultar transcripción' : 'Mostrar transcripción'}</span>
-            </button>
+            <span className="text-[11px] text-stone-500">
+              {interactionMode === 'text'
+                ? 'Modo Chat por Texto activo (respuestas breves con base científica).'
+                : 'Modo Voz activo (síntesis y reconocimiento de voz en español).'}
+            </span>
 
             <div className="flex items-center gap-3">
-              {/* Botón de Silenciar */}
-              <button
-                type="button"
-                onClick={handleToggleMute}
-                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-colors ${
-                  isMuted
-                    ? 'bg-amber-500 text-stone-950'
-                    : 'bg-stone-800 hover:bg-stone-700 text-white border border-stone-700'
-                }`}
-              >
-                {isMuted ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-                <span>{isMuted ? 'Activar micro' : 'Silenciar'}</span>
-              </button>
+              {interactionMode === 'voice' && (
+                <button
+                  type="button"
+                  onClick={handleToggleMute}
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-colors ${
+                    isMuted
+                      ? 'bg-amber-500 text-stone-950'
+                      : 'bg-stone-800 hover:bg-stone-700 text-white border border-stone-700'
+                  }`}
+                >
+                  {isMuted ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                  <span>{isMuted ? 'Activar micro' : 'Silenciar micro'}</span>
+                </button>
+              )}
 
-              {/* Botón de Colgar */}
               <button
                 type="button"
                 onClick={handleHangUp}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-rose-600 hover:bg-rose-500 text-white shadow-md transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-stone-800 hover:bg-rose-600 text-stone-200 hover:text-white border border-stone-700 transition-colors"
               >
-                <PhoneOff className="w-4 h-4" />
-                <span>Colgar</span>
+                <PhoneOff className="w-3.5 h-3.5" />
+                <span>Cerrar</span>
               </button>
             </div>
           </div>

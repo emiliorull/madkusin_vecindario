@@ -1,30 +1,22 @@
 /**
  * src/services/voice/voicePromptsAndTools.js
- * System Prompt oficial y definiciones de herramientas (Function Calling) para Kusin, el Agente de Voz del taller de Emil.
+ * System Prompt oficial y definiciones de herramientas (Function Calling) para Kusin, el Agente Técnico del taller de Emil.
  */
 
 export const INITIAL_GREETING =
-  'Hola, soy Kusin, el asistente del taller de afilado de Emil. ¿Te gustaría reservar una cita para que afilemos gratis tu peor cuchillo?';
+  'Hola, soy Kusin, el asistente técnico del taller de Emil. Puedes hacerme cualquier pregunta sobre tus cuchillos o el afilado, reservar una cita nueva, o consultar y modificar los datos de tu cita.';
 
 export function buildKusinSystemPrompt() {
   const todayIso = new Date().toISOString().split('T')[0];
 
-  return `Eres Kusin, el asistente virtual de inteligencia artificial del taller de afilado de cuchillos de Emil ("El Afilador del Siglo XXI") en el vecindario del código postal 28224 (Pozuelo de Alarcón). El artesano humano que acude a los domicilios y afila los cuchillos se llama Emil. Hablas en español de España con un tono cercano, educado, cálido y conciso. Usa siempre un lenguaje neutro e inclusivo sin resultar artificial.
+  return `Eres Kusin, el asistente técnico de inteligencia artificial del taller de afilado de cuchillos de Emil.
 Fecha actual de referencia: ${todayIso}.
 
-REGLAS QUE DEBES CUMPLIR SIEMPRE:
-1. Preséntate siempre diciendo exactamente: "${INITIAL_GREETING}"
-2. Explica que Emil realiza un afilado profesional de alta precisión con afilador de banda y strop, absolutamente respetuoso con el temple del acero y diseñado para no sobrecalentar nunca la hoja (NUNCA menciones refrigeración por agua).
-3. Aclara siempre que SOLO afilamos cuchillos de acero de filo liso. Quedan estrictamente excluidos cuchillos de sierra (paneros/chuleteros), cerámicos, tijeras, hachas o sierras.
-4. Si te preguntan por precios o tarifas para el resto de cuchillos: indica amablemente que primero Emil afila gratis el peor cuchillo de acero de filo liso sin ningún compromiso. Si es modalidad in situ (a domicilio), cuando el vecino compruebe el resultado, Emil le indicará la tarifa de viva voz para el resto de cuchillos en el momento. Si eligen recogida y entrega (24/48h), Emil recoge los cuchillos, afila gratis el peor en el taller y los devuelve en un plazo máximo de 24/48 horas; al entregarlo, el cliente prueba primero su peor cuchillo y, si no le convence, no hay ningún compromiso.
-5. Para agendar una cita con Emil, debes recopilar paso a paso:
-   (a) Confirmar que vive en el código postal 28224 (Pozuelo de Alarcón),
-   (b) Modalidad preferida: afilado in situ a domicilio ("in_situ") o recogida y entrega en 24/48h ("recogida"),
-   (c) Si es in situ, confirmar que dispone de una toma de corriente cercana a menos de 15 metros (Emil lleva una alargadera profesional de 15 metros),
-   (d) Número aproximado de cuchillos de acero de filo liso,
-   (e) Día (de lunes a viernes) y hora preferida entre las 10:00 y las 13:00,
-   (f) Nombre, dirección completa en el CP 28224 y correo electrónico (confirmado claramente; NUNCA pidas número de teléfono).
-6. Usa la herramienta \`check_availability\` para consultar huecos reales en n8n y \`book_appointment\` para registrar la cita. Una vez confirmada, recuérdale que en la pantalla de su navegador acaba de aparecer su resumen de cita y un botón por si desea recibir el aviso por Telegram sin dar su móvil.`;
+DIRECTRICES QUE DEBES CUMPLIR SIEMPRE:
+1. Sin respuestas preestablecidas: responde a todas las preguntas del usuario de forma natural, clara y precisa basándote en la documentación técnica y de servicio del taller de Emil.
+2. Nunca muestres códigos internos de cita (#id) ni menciones códigos postales ni "Pozuelo de Alarcón y alrededores".
+3. Cuando el usuario consulte su cita, muéstrale todos los datos disponibles (fecha, hora, dirección completa, correo electrónico y número de cuchillos, junto con modalidad y notas) y ofrécele modificar cualquier dato que necesite.
+4. Nunca pidas número de teléfono.`;
 }
 
 /**
@@ -34,7 +26,7 @@ export const VOICE_AGENT_TOOLS = [
   {
     name: 'check_availability',
     description:
-      'Consulta los huecos disponibles en la agenda de Kusin (Lunes a Viernes de 10:00 a 13:00) para una fecha, modalidad y número de cuchillos.',
+      'Consulta los huecos disponibles en la agenda (Lunes a Viernes de 10:00 a 13:00) para una fecha, modalidad y número de cuchillos.',
     parameters: {
       type: 'OBJECT',
       properties: {
@@ -75,10 +67,6 @@ export const VOICE_AGENT_TOOLS = [
           type: 'STRING',
           description: 'Dirección completa del domicilio (calle, número, portal o chalé).'
         },
-        codigo_postal: {
-          type: 'STRING',
-          description: 'Código postal del domicilio (debe ser "28224").'
-        },
         modalidad: {
           type: 'STRING',
           enum: ['in_situ', 'recogida'],
@@ -110,13 +98,45 @@ export const VOICE_AGENT_TOOLS = [
         'nombre',
         'email',
         'direccion',
-        'codigo_postal',
         'modalidad',
         'num_cuchillos',
         'tiene_enchufe_15m',
         'fecha',
         'hora'
       ]
+    }
+  },
+  {
+    name: 'lookup_appointment_by_email',
+    description: 'Busca la cita activa del usuario utilizando su correo electrónico.',
+    parameters: {
+      type: 'OBJECT',
+      properties: {
+        email: {
+          type: 'STRING',
+          description: 'Correo electrónico con el que se realizó la reserva.'
+        }
+      },
+      required: ['email']
+    }
+  },
+  {
+    name: 'update_appointment',
+    description:
+      'Modifica uno o varios datos de la cita existente del usuario (fecha, hora, dirección completa, correo electrónico, número de cuchillos, modalidad, nombre o notas).',
+    parameters: {
+      type: 'OBJECT',
+      properties: {
+        fecha: { type: 'STRING', description: 'Nueva fecha en formato YYYY-MM-DD.' },
+        hora: { type: 'STRING', description: 'Nueva hora de inicio HH:MM (10:00 a 13:00).' },
+        direccion: { type: 'STRING', description: 'Nueva dirección completa.' },
+        email: { type: 'STRING', description: 'Nuevo correo electrónico.' },
+        num_cuchillos: { type: 'INTEGER', description: 'Nuevo número de cuchillos.' },
+        modalidad: { type: 'STRING', enum: ['in_situ', 'recogida'] },
+        nombre: { type: 'STRING', description: 'Nuevo nombre.' },
+        notas: { type: 'STRING', description: 'Nuevas notas.' },
+        email_actual: { type: 'STRING', description: 'Correo electrónico actual de la cita.' }
+      }
     }
   }
 ];

@@ -33,7 +33,7 @@ export default function HeroSection({ onOpenVoiceAssistant }) {
             <div className="space-y-3">
               <div className="inline-flex flex-wrap items-center gap-2 px-3.5 py-1 rounded-full bg-stone-800 border border-stone-700 text-amber-400 text-xs sm:text-sm font-bold uppercase tracking-wider">
                 <MapPin className="w-4 h-4 text-kusin-terra shrink-0" />
-                <span>El Afilador a domicilio · Servicio exclusivo en Pozuelo de Alarcón</span>
+                <span>El Afilador a domicilio · Servicio en Pozuelo de Alarcón y alrededores</span>
               </div>
 
               <h1 className="font-display text-4xl sm:text-6xl lg:text-7xl font-extrabold uppercase tracking-tight text-stone-50 leading-[1.03]">
@@ -64,7 +64,7 @@ export default function HeroSection({ onOpenVoiceAssistant }) {
 
             <h2 className="font-serif text-3xl sm:text-4xl lg:text-[2.75rem] font-bold text-stone-900 leading-[1.15] tracking-tight">
               Soy <span className="text-kusin-terra">Emil</span>, tu artesano afilador a domicilio
-              en Pozuelo de Alarcón.
+              en Pozuelo de Alarcón y alrededores.
             </h2>
 
             {/* Descripción Técnica del Afilado (ACTUALIZADA ESTRICTAMENTE) */}
@@ -79,7 +79,7 @@ export default function HeroSection({ onOpenVoiceAssistant }) {
               Recupero la figura del clásico afilador ambulante pero actualizo con maquinaria moderna de precisión y respeto con los procesos térmicos del temple.
             </p>
             <p className="text-base sm:text-lg text-stone-800 leading-relaxed">
-              Me desplazo a tu domicilio en <strong>Pozuelo de Alarcón</strong> o recojo tus
+              Me desplazo a tu domicilio en <strong>Pozuelo de Alarcón y alrededores</strong> o recojo tus
               cuchillos para devolvértelos listos en 24/48h.
             </p>
             <p className="text-base sm:text-lg text-stone-800 leading-relaxed">

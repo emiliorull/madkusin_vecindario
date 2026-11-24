@@ -20,13 +20,13 @@ export default function Footer({ onOpenVoiceAssistant }) {
                 <span className="font-serif font-bold text-xl text-white block">
                   Taller de afilado a domicilio
                 </span>
-                <span className="text-xs text-amber-400">Disponible en Pozuelo de Alarcón</span>
+                <span className="text-xs text-amber-400">Disponible en Pozuelo de Alarcón y alrededores</span>
               </div>
             </div>
             <p className="text-sm text-stone-400 leading-relaxed">
               Afilado profesional de alta precisión con afilador de banda y strop, absolutamente
               respetuoso con el temple del acero y diseñado para no sobrecalentar nunca la hoja.
-              Exclusivo para hogares de Pozuelo de Alarcón.
+              Servicio para hogares de Pozuelo de Alarcón y alrededores.
             </p>
           </div>
 
@@ -42,7 +42,7 @@ export default function Footer({ onOpenVoiceAssistant }) {
               </li>
               <li className="flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-amber-400 shrink-0" />
-                <span>Exclusivo residentes de Pozuelo de Alarcón</span>
+                <span>Pozuelo de Alarcón y alrededores</span>
               </li>
               <li className="flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />

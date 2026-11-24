@@ -17,14 +17,22 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-# Etapa 2: Servidor ligero de producción
+# Etapa 2: Servidor ligero de producción + Motor RAG Kusin + Extractor PDF para Bot Privado
 FROM node:20-alpine
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 
+# Instalar poppler-utils (pdftotext, ~3MB) para extraer texto de PDFs enviados por Emil al Bot Privado de Telegram
+RUN apk add --no-cache poppler-utils
+
 COPY --from=builder /app/dist ./dist
+COPY package.json ./package.json
 COPY server.js ./server.js
+COPY server ./server
+COPY src/services/voice/voicePromptsAndTools.js ./src/services/voice/voicePromptsAndTools.js
+COPY knowledge/emil-scientific-core.md ./knowledge/emil-scientific-core.md
+COPY knowledge/rag-index.json ./knowledge/rag-index.json
 
 EXPOSE 3000
 CMD ["node", "server.js"]

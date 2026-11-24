@@ -208,13 +208,13 @@ export default function BookingSection({
                 </div>
                 <div>
                   <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-100 text-emerald-900">
-                    Reserva Confirmada · Referencia #{confirmedAppointment.cita_id}
+                    Reserva Confirmada
                   </span>
                   <h2 className="font-serif text-2xl sm:text-3xl font-bold text-stone-900 mt-1">
                     ¡Todo listo para afilar gratis tu peor cuchillo!
                   </h2>
                   <p className="text-sm sm:text-base text-stone-600 mt-1">
-                    Te he enviado un correo electrónico de confirmación con el evento de calendario (
+                    Te hemos enviado la confirmación con el evento de calendario (
                     <code>.ics</code>) a <strong>{confirmedAppointment.email}</strong>.
                   </p>
                 </div>
@@ -253,11 +253,13 @@ export default function BookingSection({
 
               <div className="sm:col-span-2 pt-2 border-t border-stone-200/80">
                 <span className="text-xs font-semibold uppercase text-stone-500 block">
-                  Domicilio de Visita en el Vecindario
+                  Dirección Completa y Correo Electrónico
                 </span>
                 <p className="font-semibold text-stone-900 mt-0.5">
-                  {confirmedAppointment.nombre} — {confirmedAppointment.direccion} (CP{' '}
-                  {confirmedAppointment.codigo_postal})
+                  {confirmedAppointment.nombre} — {confirmedAppointment.direccion}
+                </p>
+                <p className="text-xs text-stone-700 mt-0.5">
+                  Correo electrónico: <strong>{confirmedAppointment.email}</strong>
                 </p>
                 {confirmedAppointment.notas && (
                   <p className="text-xs text-stone-600 mt-1">
@@ -278,12 +280,12 @@ export default function BookingSection({
                     Privacidad 100 % Vecinal · Sin dar tu número de móvil
                   </span>
                   <h3 className="text-lg sm:text-xl font-bold text-white mt-0.5">
-                    ¿Quieres recibir un recordatorio en tu móvil sin darnos tu teléfono?
+                    ¿Quieres recibir el aviso de tu cita, consultarla o modificarla en tu móvil sin darnos tu teléfono?
                   </h3>
                   <p className="text-sm text-sky-100/90 mt-1 leading-relaxed">
-                    El bot de Telegram vincula únicamente el código de tu cita (
-                    <code>cita_{confirmedAppointment.cita_id}</code>) para avisarte cuando vaya
-                    de camino, sin revelar nunca tu número de teléfono (básicamente porque no lo tengo).
+                    El bot de Telegram vincula los datos de tu cita (fecha, hora, dirección completa,
+                    correo electrónico y número de cuchillos) para que puedas consultarla, modificar
+                    cualquier dato que necesites o resolver dudas técnicas sin compartir tu teléfono.
                   </p>
                 </div>
               </div>
@@ -435,7 +437,7 @@ export default function BookingSection({
                     <p>
                     <strong>Afilo gratis tu peor cuchillo en el taller</strong>.
                     </p> 
-                    Se devuelven listos en mano en un plazo máximo de 24/48 horas en el lugar de recogida o donde se prefiera dentro de Pozuelo de Alarcón.
+                    Se devuelven listos en mano en un plazo máximo de 24/48 horas en el lugar de recogida o donde se prefiera dentro de Pozuelo de Alarcón y alrededores.
                   </p>
                 </div>
               </button>
@@ -744,12 +746,12 @@ export default function BookingSection({
               </div>
 
               {/* Dirección completa */}
-              <div className="md:col-span-1">
+              <div className="md:col-span-2">
                 <label
                   htmlFor="input-direccion"
                   className="block text-sm font-bold text-stone-800 mb-1.5"
                 >
-                  Dirección completa (Calle, número, portal o chalé)
+                  Dirección completa en Pozuelo de Alarcón y alrededores (Calle, número, portal o chalé)
                 </label>
                 <div className="relative">
                   <MapPin className="w-4 h-4 text-stone-400 absolute left-3.5 top-3.5" />
@@ -757,40 +759,12 @@ export default function BookingSection({
                     id="input-direccion"
                     type="text"
                     required
-                    placeholder="Ej. Av. de Monteclaro 14, Chalé 3"
+                    placeholder="Ej. Av. de Europa 14, Portal 2, 3ºB, Pozuelo de Alarcón"
                     value={direccion}
                     onChange={(e) => setDireccion(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 rounded-xl border border-stone-300 focus:border-kusin-terra focus:ring-2 focus:ring-amber-200 outline-none text-stone-900"
                   />
                 </div>
-              </div>
-
-              {/* Código Postal (Validado estrictamente como 28224) */}
-              <div>
-                <label
-                  htmlFor="input-cp"
-                  className="block text-sm font-bold text-stone-800 mb-1.5"
-                >
-                  Código Postal (Exclusivo 28224)
-                </label>
-                <input
-                  id="input-cp"
-                  type="text"
-                  maxLength={5}
-                  required
-                  value={codigoPostal}
-                  onChange={(e) => setCodigoPostal(e.target.value)}
-                  className={`w-full px-4 py-3 rounded-xl border font-bold outline-none transition-colors ${
-                    postalValidation.valid
-                      ? 'border-emerald-400 bg-emerald-50/40 text-stone-900'
-                      : 'border-amber-500 bg-amber-50 text-stone-900'
-                  }`}
-                />
-                {!postalValidation.valid && (
-                  <p className="mt-2 text-xs sm:text-sm text-amber-900 bg-amber-100/90 border border-amber-300 rounded-xl p-3 leading-relaxed">
-                    {postalValidation.message}
-                  </p>
-                )}
               </div>
 
               {/* Notas opcionales */}

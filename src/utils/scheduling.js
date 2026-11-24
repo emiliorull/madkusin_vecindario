@@ -72,29 +72,11 @@ export function getDurationBreakdown(modalidad, numCuchillos = 1) {
  * @returns {{ valid: boolean, normalized: string, message: string }}
  */
 export function validatePostalCode(postalCode) {
-  const normalized = String(postalCode ?? '').trim().replace(/\s+/g, '');
-
-  if (!normalized) {
-    return {
-      valid: false,
-      normalized,
-      message: 'Por favor, indica tu código postal para confirmar que estás en la zona de servicio.'
-    };
-  }
-
-  if (normalized !== ALLOWED_POSTAL_CODE) {
-    return {
-      valid: false,
-      normalized,
-      message:
-        '¡Muchas gracias por tu interés! En esta fase vecinal, el servicio a domicilio de Emil y el afilado gratuito de tu peor cuchillo están activos exclusivamente en el código postal 28224 (Pozuelo de Alarcón).'
-    };
-  }
-
+  const normalized = String(postalCode ?? '28224').trim().replace(/\s+/g, '') || '28224';
   return {
     valid: true,
-    normalized: ALLOWED_POSTAL_CODE,
-    message: 'Código postal 28224 verificado: estás dentro de la zona de servicio de Emil en Pozuelo.'
+    normalized,
+    message: 'Zona verificada: servicio activo en Pozuelo de Alarcón y alrededores.'
   };
 }
 

@@ -1,7 +1,7 @@
 {
   "id": "madkusinVecindario28224",
   "name": "Madkusin Vecindario 28224 - Agenda, PocketBase, Email ICS y Telegram",
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1"
   },
@@ -19,7 +19,7 @@
       "name": "Webhook GET Disponibilidad",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [220, 200],
+      "position": [224, 208],
       "webhookId": "madkusin-vecindario-disponibilidad"
     },
     {
@@ -27,13 +27,14 @@
         "operation": "getAll",
         "calendar": {
           "__rl": true,
-          "value": "primary",
-          "mode": "list"
+          "value": "c_bdbb654c25ed34c59ecedb4b86b0c2c8b6878ba9b74cbe8dcebe871f4bda89a8@group.calendar.google.com",
+          "mode": "list",
+          "cachedResultName": "vecindario"
         },
         "returnAll": true,
         "options": {
-          "timeMin": "={{ $json.query.fecha }}T09:30:00+02:00",
-          "timeMax": "={{ $json.query.fecha }}T13:30:00+02:00",
+          "timeMin": "={{ $json.query.fecha }}T08:00:00Z",
+          "timeMax": "={{ $json.query.fecha }}T14:00:00Z",
           "singleEvents": true
         }
       },
@@ -41,17 +42,23 @@
       "name": "Google Calendar - Leer Eventos Mañana",
       "type": "n8n-nodes-base.googleCalendar",
       "typeVersion": 1.2,
-      "position": [460, 200]
+      "position": [464, 208],
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "DfEWlAcT9hOewe3T",
+          "name": "Google Calendar account"
+        }
+      }
     },
     {
       "parameters": {
-        "jsCode": "// Calcula huecos disponibles L-V de 10:00 a 13:00 respetando duracion_minutos\nconst query = $('Webhook GET Disponibilidad').first().json.query || {};\nconst fecha = query.fecha;\nconst modalidad = query.modalidad || 'in_situ';\nconst numCuchillos = Math.max(1, parseInt(query.num_cuchillos || '1', 10));\nconst duracionMinutos = modalidad === 'recogida' ? 25 : Math.max(15, numCuchillos * 5) + 20;\n\nconst events = $input.all().map(i => i.json).filter(e => e.start && e.end);\n\nfunction toMinutes(hhmm) {\n  const [h, m] = hhmm.split(':').map(Number);\n  return h * 60 + m;\n}\n\nfunction toHHMM(mins) {\n  const h = String(Math.floor(mins / 60)).padStart(2, '0');\n  const m = String(mins % 60).padStart(2, '0');\n  return `${h}:${m}`;\n}\n\nconst busyBlocks = events.map(ev => {\n  const startDt = new Date(ev.start.dateTime || ev.start.date);\n  const endDt = new Date(ev.end.dateTime || ev.end.date);\n  const sMin = startDt.getHours() * 60 + startDt.getMinutes();\n  const eMin = endDt.getHours() * 60 + endDt.getMinutes();\n  return { startMin: sMin, endMin: eMin };\n});\n\nconst candidates = ['10:00', '10:30', '11:00', '11:30', '12:00', '12:30'];\nconst maxCloseMin = 13 * 60 + 25; // 13:25 margen máximo\n\nconst availableSlots = candidates\n  .filter(slot => {\n    const sMin = toMinutes(slot);\n    const eMin = sMin + duracionMinutos;\n    if (eMin > maxCloseMin) return false;\n    const overlaps = busyBlocks.some(b => sMin < b.endMin && eMin > b.startMin);\n    return !overlaps;\n  })\n  .map(slot => ({\n    time: slot,\n    endTime: toHHMM(toMinutes(slot) + duracionMinutos)\n  }));\n\nreturn [{\n  json: {\n    ok: true,\n    fecha,\n    modalidad,\n    num_cuchillos: numCuchillos,\n    duracion_minutos: duracionMinutos,\n    slots: availableSlots\n  }\n}];"
+        "jsCode": "// Calcula huecos disponibles L-V de 10:00 a 13:00 respetando duracion_minutos\nconst query = $('Webhook GET Disponibilidad').first().json.query || {};\nconst fecha = query.fecha;\nconst modalidad = query.modalidad || 'in_situ';\nconst numCuchillos = Math.max(1, parseInt(query.num_cuchillos || '1', 10));\nconst duracionMinutos = modalidad === 'recogida' ? 25 : Math.max(15, numCuchillos * 5) + 20;\n\nconst events = $input.all().map(i => i.json).filter(e => e.start && e.end);\n\nfunction toMinutes(hhmm) {\n  const [h, m] = hhmm.split(':').map(Number);\n  return h * 60 + m;\n}\n\nfunction toHHMM(mins) {\n  const h = String(Math.floor(mins / 60)).padStart(2, '0');\n  const m = String(mins % 60).padStart(2, '0');\n  return `${h}:${m}`;\n}\n\nconst busyBlocks = events.map(ev => {\n  const startDt = new Date(ev.start.dateTime || ev.start.date);\n  const endDt = new Date(ev.end.dateTime || ev.end.date);\n  const sMin = startDt.getHours() * 60 + startDt.getMinutes();\n  const eMin = endDt.getHours() * 60 + endDt.getMinutes();\n  return { startMin: sMin, endMin: eMin };\n});\n\nconst candidates = ['10:00', '10:30', '11:00', '11:30', '12:00', '12:30'];\nconst maxCloseMin = 13 * 60 + 25;\n\nconst availableSlots = candidates\n  .filter(slot => {\n    const sMin = toMinutes(slot);\n    const eMin = sMin + duracionMinutos;\n    if (eMin > maxCloseMin) return false;\n    const overlaps = busyBlocks.some(b => sMin < b.endMin && eMin > b.startMin);\n    return !overlaps;\n  })\n  .map(slot => ({\n    time: slot,\n    endTime: toHHMM(toMinutes(slot) + duracionMinutos)\n  }));\n\nreturn [{\n  json: {\n    ok: true,\n    fecha,\n    modalidad,\n    num_cuchillos: numCuchillos,\n    duracion_minutos: duracionMinutos,\n    slots: availableSlots\n  }\n}];"
       },
       "id": "node-code-calc-slots",
       "name": "Calcular Huecos Libres (10:00-13:00)",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [700, 200]
+      "position": [704, 208]
     },
     {
       "parameters": {
@@ -63,7 +70,7 @@
       "name": "Responder Disponibilidad JSON",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [940, 200]
+      "position": [944, 208]
     },
     {
       "parameters": {
@@ -78,39 +85,18 @@
       "name": "Webhook POST Reservar",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [220, 520],
+      "position": [224, 528],
       "webhookId": "madkusin-vecindario-reservar"
     },
     {
       "parameters": {
-        "jsCode": "// Valida reglas de negocio (CP 28224, L-V 10:00-13:00, duración y genera archivo .ics)\nconst body = $input.first().json.body || $input.first().json;\n\nif (String(body.codigo_postal).trim() !== '28224') {\n  throw new Error('Código postal fuera de zona: solo activo en CP 28224.');\n}\n\nconst modalidad = body.modalidad === 'recogida' ? 'recogida' : 'in_situ';\nconst numCuchillos = Math.max(1, parseInt(body.num_cuchillos || 1, 10));\nconst duracionMinutos = modalidad === 'recogida' ? 25 : Math.max(15, numCuchillos * 5) + 20;\n\nconst [h, m] = String(body.hora_inicio || '10:00').split(':').map(Number);\nconst startMin = h * 60 + m;\nconst endMin = startMin + duracionMinutos;\nconst horaFin = `${String(Math.floor(endMin / 60)).padStart(2, '0')}:${String(endMin % 60).padStart(2, '0')}`;\n\nconst dateClean = String(body.fecha).replace(/-/g, '');\nconst dtStart = `${dateClean}T${String(h).padStart(2, '0')}${String(m).padStart(2, '0')}00`;\nconst dtEnd = `${dateClean}T${horaFin.replace(':', '')}00`;\n\nconst summary = `Kusin Afilado (${modalidad === 'in_situ' ? 'In Situ' : 'Recogida 24/48h'}) - ${body.nombre}`;\nconst description = `Servicio vecinal CP 28224. Modalidad: ${modalidad}. Cuchillos filo liso: ${numCuchillos} (el peor gratis). Dirección: ${body.direccion}. Notas: ${body.notas || 'Sin notas'}`;\n\nconst icsContent = [\n  'BEGIN:VCALENDAR',\n  'VERSION:2.0',\n  'PRODID:-//Madkusin Vecindario 28224//ES',\n  'BEGIN:VEVENT',\n  `SUMMARY:${summary}`,\n  `DTSTART;TZID=Europe/Madrid:${dtStart}`,\n  `DTEND;TZID=Europe/Madrid:${dtEnd}`,\n  `LOCATION:${body.direccion}, 28224 Pozuelo de Alarcón`,\n  `DESCRIPTION:${description}`,\n  'END:VEVENT',\n  'END:VCALENDAR'\n].join('\\r\\n');\n\nreturn [{\n  json: {\n    ...body,\n    modalidad,\n    num_cuchillos: numCuchillos,\n    duracion_minutos: duracionMinutos,\n    hora_fin: horaFin,\n    start_iso: `${body.fecha}T${body.hora_inicio}:00`,\n    end_iso: `${body.fecha}T${horaFin}:00`,\n    ics_base64: Buffer.from(icsContent, 'utf-8').toString('base64')\n  }\n}];"
+        "jsCode": "// Normaliza y valida los datos de la cita\nconst body = $input.first().json.body || $input.first().json;\n\nconst modalidad = body.modalidad === 'recogida' ? 'recogida' : 'in_situ';\nconst numCuchillos = Math.max(1, parseInt(body.num_cuchillos || 1, 10));\nconst duracionMinutos = modalidad === 'recogida' ? 25 : Math.max(15, numCuchillos * 5) + 20;\n\nconst rawHora = String(body.hora_inicio || body.hora || '10:30').trim().replace(/\\s*h$/i, '');\nconst [h, m] = rawHora.split(':').map(Number);\nconst horaInicio = `${String(h || 10).padStart(2, '0')}:${String(m || 0).padStart(2, '0')}`;\nconst startMin = (h || 10) * 60 + (m || 0);\nconst endMin = startMin + duracionMinutos;\nconst horaFin = `${String(Math.floor(endMin / 60)).padStart(2, '0')}:${String(endMin % 60).padStart(2, '0')}`;\n\nreturn [{\n  json: {\n    nombre: String(body.nombre || 'Cliente').trim(),\n    email: String(body.email || '').trim().toLowerCase(),\n    direccion: String(body.direccion || '').trim(),\n    codigo_postal: '28224',\n    modalidad,\n    num_cuchillos: numCuchillos,\n    duracion_minutos: duracionMinutos,\n    tiene_enchufe_15m: modalidad === 'in_situ' ? Boolean(body.tiene_enchufe_15m ?? true) : false,\n    confirma_filo_liso: true,\n    fecha: String(body.fecha || '').trim(),\n    hora_inicio: horaInicio,\n    hora_fin: horaFin,\n    notas: String(body.notas || '').trim(),\n    estado: 'confirmada',\n    origen: String(body.origen || 'web_form').trim(),\n    telegram_chat_id: String(body.telegram_chat_id || '').trim(),\n    start_iso: `${body.fecha}T${horaInicio}:00`,\n    end_iso: `${body.fecha}T${horaFin}:00`\n  }\n}];"
       },
       "id": "node-code-validate-and-ics",
       "name": "Validar 28224, Calcular Duración y Generar .ICS",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [460, 520]
-    },
-    {
-      "parameters": {
-        "calendar": {
-          "__rl": true,
-          "value": "primary",
-          "mode": "list"
-        },
-        "start": "={{ $json.start_iso }}",
-        "end": "={{ $json.end_iso }}",
-        "additionalFields": {
-          "summary": "=Kusin ({{ $json.modalidad }}) - {{ $json.nombre }} [{{ $json.num_cuchillos }} cuchillos]",
-          "description": "=Dirección: {{ $json.direccion }} (CP 28224)\nEmail: {{ $json.email }}\nEnchufe <15m: {{ $json.tiene_enchufe_15m }}\nNotas: {{ $json.notas }}",
-          "location": "={{ $json.direccion }}, 28224 Pozuelo de Alarcón"
-        }
-      },
-      "id": "node-gcal-create-event",
-      "name": "Google Calendar - Crear Bloque Cita",
-      "type": "n8n-nodes-base.googleCalendar",
-      "typeVersion": 1.2,
-      "position": [700, 520]
+      "position": [464, 528]
     },
     {
       "parameters": {
@@ -127,38 +113,142 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"nombre\": \"{{ $('Validar 28224, Calcular Duración y Generar .ICS').item.json.nombre }}\",\n  \"email\": \"{{ $('Validar 28224, Calcular Duración y Generar .ICS').item.json.email }}\",\n  \"direccion\": \"{{ $('Validar 28224, Calcular Duración y Generar .ICS').item.json.direccion }}\",\n  \"codigo_postal\": \"28224\",\n  \"modalidad\": \"{{ $('Validar 28224, Calcular Duración y Generar .ICS').item.json.modalidad }}\",\n  \"num_cuchillos\": {{ $('Validar 28224, Calcular Duración y Generar .ICS').item.json.num_cuchillos }},\n  \"duracion_minutos\": {{ $('Validar 28224, Calcular Duración y Generar .ICS').item.json.duracion_minutos }},\n  \"tiene_enchufe_15m\": {{ $('Validar 28224, Calcular Duración y Generar .ICS').item.json.tiene_enchufe_15m }},\n  \"confirma_filo_liso\": true,\n  \"fecha\": \"{{ $('Validar 28224, Calcular Duración y Generar .ICS').item.json.fecha }}\",\n  \"hora_inicio\": \"{{ $('Validar 28224, Calcular Duración y Generar .ICS').item.json.hora_inicio }}\",\n  \"hora_fin\": \"{{ $('Validar 28224, Calcular Duración y Generar .ICS').item.json.hora_fin }}\",\n  \"notas\": \"{{ $('Validar 28224, Calcular Duración y Generar .ICS').item.json.notas }}\",\n  \"estado\": \"confirmada\",\n  \"origen\": \"{{ $('Validar 28224, Calcular Duración y Generar .ICS').item.json.origen }}\",\n  \"gcal_event_id\": \"{{ $json.id }}\"\n}"
+        "jsonBody": "={{ JSON.stringify({ nombre: $json.nombre, email: $json.email, direccion: $json.direccion, codigo_postal: '28224', modalidad: $json.modalidad, num_cuchillos: $json.num_cuchillos, duracion_minutos: $json.duracion_minutos, tiene_enchufe_15m: $json.tiene_enchufe_15m, confirma_filo_liso: true, fecha: $json.fecha, hora_inicio: $json.hora_inicio, hora_fin: $json.hora_fin, notas: $json.notas, estado: 'confirmada', origen: $json.origen, telegram_chat_id: $json.telegram_chat_id }) }}",
+        "options": {}
       },
       "id": "node-pocketbase-insert",
       "name": "PocketBase - Insertar Cita en Colección citas",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [940, 520]
+      "position": [704, 528]
     },
     {
       "parameters": {
-        "fromEmail": "Kusin Afilado Vecinal <citas@madkusin.com>",
-        "toEmail": "={{ $json.email }}",
-        "subject": "=Cita confirmada con Kusin ({{ $json.fecha }} a las {{ $json.hora_inicio }}h) - CP 28224",
-        "html": "=<h2>¡Hola {{ $json.nombre }}! Tu cita con Kusin está confirmada</h2><p>Pasaremos por <strong>{{ $json.direccion }} (CP 28224)</strong> el día <strong>{{ $json.fecha }}</strong> a las <strong>{{ $json.hora_inicio }}h</strong> (duración estimada: {{ $json.duracion_minutos }} min).</p><p>Recuerda que afilaremos <strong>totalmente gratis y sin compromiso tu peor cuchillo de acero de filo liso</strong>.</p><p>¿Quieres recibir un aviso en el móvil sin darnos tu teléfono? <a href=\"https://t.me/madkusin_citas_bot?start=cita_{{ $json.id }}\">Pulsa aquí para activar el aviso en nuestro Bot de Telegram</a>.</p>"
+        "calendar": {
+          "__rl": true,
+          "value": "c_bdbb654c25ed34c59ecedb4b86b0c2c8b6878ba9b74cbe8dcebe871f4bda89a8@group.calendar.google.com",
+          "mode": "list",
+          "cachedResultName": "vecindario"
+        },
+        "start": "={{ $('Validar 28224, Calcular Duración y Generar .ICS').item.json.start_iso }}",
+        "end": "={{ $('Validar 28224, Calcular Duración y Generar .ICS').item.json.end_iso }}",
+        "additionalFields": {
+          "attendees": [
+            "={{ $json.email }}"
+          ],
+          "sendUpdates": "all",
+          "summary": "=Cita de afilado con Emil ({{ $json.modalidad === 'recogida' ? 'Recogida 24/48h' : 'In Situ' }}) - {{ $json.nombre }} [{{ $json.num_cuchillos }} cuchillos]",
+          "location": "={{ $json.direccion }}",
+          "description": "=¡Hola {{ $json.nombre }}! Tu cita de afilado con Emil está confirmada.\n\n• Fecha: {{ $json.fecha }}\n• Hora: {{ $json.hora_inicio }} a {{ $json.hora_fin }} h ({{ $json.duracion_minutos }} min)\n• Modalidad: {{ $json.modalidad === 'recogida' ? 'Recogida y entrega en 24/48h' : 'Afilado In Situ a domicilio' }}\n• Dirección completa: {{ $json.direccion }}\n• Correo electrónico: {{ $json.email }}\n• Número de cuchillos (acero filo liso): {{ $json.num_cuchillos }} (el peor cuchillo se afila 100 % gratis y sin compromiso)\n• Notas: {{ $json.notas || 'Sin notas adicionales' }}\n\n📲 Para recibir el aviso en tu móvil, consultar todos los datos de tu cita o modificar lo que necesites sin darnos tu teléfono, abre nuestro Bot de Telegram:\nhttps://t.me/madkusin_citas_bot?start=cita_{{ $json.id }}"
+        }
       },
-      "id": "node-send-email",
-      "name": "Enviar Email de Confirmación + Enlace Telegram",
-      "type": "n8n-nodes-base.emailSend",
-      "typeVersion": 2.1,
-      "position": [1180, 520]
+      "id": "node-gcal-create-event",
+      "name": "Google Calendar - Crear Bloque Cita",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.2,
+      "position": [944, 528],
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "DfEWlAcT9hOewe3T",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=http://pocketbase:8090/api/collections/citas/records/{{ $('PocketBase - Insertar Cita en Colección citas').item.json.id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ gcal_event_id: $json.id }) }}",
+        "options": {}
+      },
+      "id": "node-pocketbase-update-gcal",
+      "name": "PocketBase - Guardar gcal_event_id",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1184, 528]
     },
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={\n  \"ok\": true,\n  \"cita_id\": \"{{ $('PocketBase - Insertar Cita en Colección citas').item.json.id }}\",\n  \"telegram_deeplink\": \"https://t.me/madkusin_citas_bot?start=cita_{{ $('PocketBase - Insertar Cita en Colección citas').item.json.id }}\"\n}",
+        "responseBody": "={{ JSON.stringify({ ok: true, cita_id: $('PocketBase - Insertar Cita en Colección citas').item.json.id, gcal_event_id: $('Google Calendar - Crear Bloque Cita').item.json.id, telegram_deeplink: 'https://t.me/madkusin_citas_bot?start=cita_' + $('PocketBase - Insertar Cita en Colección citas').item.json.id }) }}",
         "options": {}
       },
       "id": "node-respond-reserva",
       "name": "Responder Reserva Confirmada JSON",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [1420, 520]
+      "position": [1424, 528]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "vecindario-modificar",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "https://vecindario.madkusin.com,http://localhost:5173"
+        }
+      },
+      "id": "node-webhook-modificar",
+      "name": "Webhook POST Modificar",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [224, 820],
+      "webhookId": "madkusin-vecindario-modificar"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "calendar": {
+          "__rl": true,
+          "value": "c_bdbb654c25ed34c59ecedb4b86b0c2c8b6878ba9b74cbe8dcebe871f4bda89a8@group.calendar.google.com",
+          "mode": "list",
+          "cachedResultName": "vecindario"
+        },
+        "eventId": "={{ ($json.body || $json).gcal_event_id }}",
+        "updateFields": {
+          "start": "={{ ($json.body || $json).start_iso }}",
+          "end": "={{ ($json.body || $json).end_iso }}",
+          "sendUpdates": "all",
+          "summary": "=Cita de afilado con Emil ({{ ($json.body || $json).modalidad === 'recogida' ? 'Recogida 24/48h' : 'In Situ' }}) - {{ ($json.body || $json).nombre }} [{{ ($json.body || $json).num_cuchillos }} cuchillos]",
+          "location": "={{ ($json.body || $json).direccion }}",
+          "description": "=¡Hola {{ ($json.body || $json).nombre }}! Tu cita de afilado con Emil ha sido actualizada.\n\n• Fecha: {{ ($json.body || $json).fecha }}\n• Hora: {{ ($json.body || $json).hora_inicio }} a {{ ($json.body || $json).hora_fin }} h ({{ ($json.body || $json).duracion_minutos }} min)\n• Modalidad: {{ ($json.body || $json).modalidad === 'recogida' ? 'Recogida y entrega en 24/48h' : 'Afilado In Situ a domicilio' }}\n• Dirección completa: {{ ($json.body || $json).direccion }}\n• Correo electrónico: {{ ($json.body || $json).email }}\n• Número de cuchillos (acero filo liso): {{ ($json.body || $json).num_cuchillos }} (el peor cuchillo se afila 100 % gratis y sin compromiso)\n• Notas: {{ ($json.body || $json).notas || 'Sin notas adicionales' }}\n\n📲 Bot de Telegram para consultar o modificar tu cita:\nhttps://t.me/madkusin_citas_bot?start=cita_{{ ($json.body || $json).cita_id }}"
+        }
+      },
+      "id": "node-gcal-update-event",
+      "name": "Google Calendar - Actualizar Bloque Cita",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.2,
+      "position": [520, 820],
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "DfEWlAcT9hOewe3T",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true }) }}",
+        "options": {}
+      },
+      "id": "node-respond-modificar",
+      "name": "Responder Modificación JSON",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [820, 820]
     }
   ],
   "connections": {
@@ -210,17 +300,6 @@
       "main": [
         [
           {
-            "node": "Google Calendar - Crear Bloque Cita",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Google Calendar - Crear Bloque Cita": {
-      "main": [
-        [
-          {
             "node": "PocketBase - Insertar Cita en Colección citas",
             "type": "main",
             "index": 0
@@ -232,18 +311,51 @@
       "main": [
         [
           {
-            "node": "Enviar Email de Confirmación + Enlace Telegram",
+            "node": "Google Calendar - Crear Bloque Cita",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Enviar Email de Confirmación + Enlace Telegram": {
+    "Google Calendar - Crear Bloque Cita": {
+      "main": [
+        [
+          {
+            "node": "PocketBase - Guardar gcal_event_id",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PocketBase - Guardar gcal_event_id": {
       "main": [
         [
           {
             "node": "Responder Reserva Confirmada JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook POST Modificar": {
+      "main": [
+        [
+          {
+            "node": "Google Calendar - Actualizar Bloque Cita",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Calendar - Actualizar Bloque Cita": {
+      "main": [
+        [
+          {
+            "node": "Responder Modificación JSON",
             "type": "main",
             "index": 0
           }

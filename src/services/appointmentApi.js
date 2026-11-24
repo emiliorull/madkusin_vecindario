@@ -52,7 +52,44 @@ export async function checkAvailability({ fecha, modalidad = 'in_situ', num_cuch
     };
   }
 
-  // Si hay webhook configurado, intentamos consultar n8n en tiempo real
+  // 1. Consultar endpoint unificado del servidor (/api/disponibilidad: PocketBase + Google Calendar vía n8n)
+  try {
+    const apiUrl = `/api/disponibilidad?fecha=${encodeURIComponent(fecha)}&modalidad=${encodeURIComponent(
+      modalidad
+    )}&num_cuchillos=${encodeURIComponent(String(safeCount))}`;
+    const apiRes = await fetch(apiUrl, { headers: { Accept: 'application/json' } });
+    if (apiRes.ok) {
+      const data = await apiRes.json();
+      if (data.ok && Array.isArray(data.slots)) {
+        const normalizedSlots = data.slots.map((item) => {
+          const timeStr = typeof item === 'string' ? item : item.time || item.hora;
+          return {
+            time: timeStr,
+            endTime:
+              item?.endTime || minutesToTime(timeToMinutes(timeStr) + duracion_minutos),
+            label: `${timeStr} h`
+          };
+        });
+        return {
+          ok: true,
+          source: 'server_live',
+          fecha,
+          modalidad,
+          num_cuchillos: safeCount,
+          duracion_minutos,
+          slots: normalizedSlots,
+          message:
+            normalizedSlots.length > 0
+              ? `Disponibilidad verificada para el ${fecha}. Duración estimada: ${duracion_minutos} minutos.`
+              : 'No quedan huecos libres esa mañana. Por favor, prueba con otro día laborable.'
+        };
+      }
+    }
+  } catch {
+    // Si se ejecuta fuera del servidor Node, probar webhook directo de n8n
+  }
+
+  // 2. Si hay webhook configurado, intentamos consultar n8n en tiempo real
   if (isWebhookConfigured(WEBHOOK_DISPONIBILIDAD)) {
     try {
       const url = new URL(WEBHOOK_DISPONIBILIDAD);
@@ -218,11 +255,42 @@ export async function bookAppointment(payload) {
     created_at: new Date().toISOString()
   };
 
-  // Intentar llamada real al webhook POST de n8n si está configurado
+  // 1. Endpoint unificado del servidor (/api/citas -> sincroniza PocketBase + Google Calendar + Confirmación por Email vía n8n sin duplicados)
+  try {
+    const pbResponse = await fetch('/api/citas', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json'
+      },
+      body: JSON.stringify(requestBody)
+    });
+
+    if (pbResponse.ok) {
+      const pbData = await pbResponse.json();
+      if (pbData.ok && pbData.cita_id) {
+        return {
+          ok: true,
+          source: 'server_live',
+          cita_id: pbData.cita_id,
+          telegram_deeplink: pbData.telegram_deeplink,
+          appointment: {
+            ...requestBody,
+            cita_id: pbData.cita_id,
+            telegram_deeplink: pbData.telegram_deeplink
+          }
+        };
+      }
+    }
+  } catch {
+    // Si se ejecuta fuera del servidor Node, probar webhook directo de n8n
+  }
+
+  // 2. Llamada directa al webhook POST de n8n si /api/citas no está activo
   if (isWebhookConfigured(WEBHOOK_RESERVAR)) {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 7000);
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
 
       const response = await fetch(WEBHOOK_RESERVAR, {
         method: 'POST',
@@ -260,37 +328,6 @@ export async function bookAppointment(payload) {
         err.message
       );
     }
-  }
-
-  // 2. Puente directo a PocketBase (/api/citas) si el webhook de n8n aún está inactivo
-  try {
-    const pbResponse = await fetch('/api/citas', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json'
-      },
-      body: JSON.stringify(requestBody)
-    });
-
-    if (pbResponse.ok) {
-      const pbData = await pbResponse.json();
-      if (pbData.ok && pbData.cita_id) {
-        return {
-          ok: true,
-          source: 'pocketbase_direct',
-          cita_id: pbData.cita_id,
-          telegram_deeplink: pbData.telegram_deeplink,
-          appointment: {
-            ...requestBody,
-            cita_id: pbData.cita_id,
-            telegram_deeplink: pbData.telegram_deeplink
-          }
-        };
-      }
-    }
-  } catch {
-    // Continúa al fallback local si se ejecuta fuera del servidor
   }
 
   // Fallback de desarrollo: genera un ID único realista y el deeplink de Telegram

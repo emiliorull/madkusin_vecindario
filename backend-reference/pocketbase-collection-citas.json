@@ -212,7 +212,10 @@
             "web_form",
             "voice_assistant_gemini",
             "voice_assistant_elevenlabs",
-            "voice_assistant_hybrid"
+            "voice_assistant_hybrid",
+            "web_ai_agent",
+            "telegram_ai_agent",
+            "kusin_ai_agent"
           ]
         }
       },
@@ -249,11 +252,11 @@
       "CREATE INDEX idx_citas_fecha_hora ON citas (fecha, hora_inicio)",
       "CREATE INDEX idx_citas_email ON citas (email)"
     ],
-    "listRule": "@request.auth.id != ''",
-    "viewRule": "@request.auth.id != ''",
+    "listRule": "",
+    "viewRule": "",
     "createRule": "",
-    "updateRule": "@request.auth.id != ''",
-    "deleteRule": "@request.auth.id != ''",
+    "updateRule": "",
+    "deleteRule": "",
     "options": {}
   }
 ]

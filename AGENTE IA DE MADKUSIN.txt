@@ -1,0 +1,55 @@
+AGENTE IA DE MADKUSIN
+---
+
+### 1. El Cerebro y Personalidad (System Prompt y Parámetros del LLM)
+📄 **Archivo:** [server/kusinAgent.js](file:///c:/Users/emili/Documents/MADKUSIN/vecindario/server/kusinAgent.js)
+
+* **Instrucciones y estilo de respuesta para clientes ([`buildUserAgentSystemPrompt`, líneas 233–284](file:///c:/Users/emili/Documents/MADKUSIN/vecindario/server/kusinAgent.js#L233-L284)):**
+  Aquí está el texto exacto que le dice a la IA quién es, cuántas frases como máximo puede usar, qué tono científico aplicar y cómo dirigir siempre la respuesta hacia tu método. Puedes cambiar cualquier frase o regla directamente ahí.
+* **Temperatura y longitud máxima ([`callGeminiGenerateContent`, líneas 383–408](file:///c:/Users/emili/Documents/MADKUSIN/vecindario/server/kusinAgent.js#L383-L408)):**
+  * `temperature: 0.25` (cuanto más cerca de `0.1`, más seco y literal; cuanto más cerca de `0.7`, más conversacional).
+  * `maxOutputTokens: 170` (limita el tamaño máximo de cada respuesta).
+* **Modo privado para ti en Telegram ([`runKusinAdminAgent`, líneas 630–710](file:///c:/Users/emili/Documents/MADKUSIN/vecindario/server/kusinAgent.js#L630-L710)):**
+  Contiene el prompt y los comandos (`/estado`, `/aprender`) de tu bot privado `@madkusin_adminbot`.
+* **Voz Neuronal TTS ([`synthesizeKusinNeuralSpeech`, líneas 729–780](file:///c:/Users/emili/Documents/MADKUSIN/vecindario/server/kusinAgent.js#L729-L780)):**
+  Configura la voz hablada de Google (`Aoede` por defecto; puedes cambiarla a voces masculinas como `Puck`, `Charon` o `Fenrir`).
+
+---
+
+### 2. El Saludo Inicial al Abrir el Asistente en la Web
+📄 **Archivo:** [src/services/voice/voicePromptsAndTools.js](file:///c:/Users/emili/Documents/MADKUSIN/vecindario/src/services/voice/voicePromptsAndTools.js)
+
+* **[`INITIAL_GREETING` (líneas 6–7)](file:///c:/Users/emili/Documents/MADKUSIN/vecindario/src/services/voice/voicePromptsAndTools.js#L6-L7):** Es la primera frase que aparece escrita (o hablada) nada más abrir el modal de Kusin en la web.
+* **Botones de preguntas frecuentes del modal:** Están en [src/components/VoiceAssistantModal.jsx (líneas 320–365)](file:///c:/Users/emili/Documents/MADKUSIN/vecindario/src/components/VoiceAssistantModal.jsx#L320-L365).
+
+---
+
+### 3. Tu Doctrina Científica Oficial (Máxima Prioridad en el RAG)
+📄 **Archivo:** [knowledge/emil-scientific-core.md](file:///c:/Users/emili/Documents/MADKUSIN/vecindario/knowledge/emil-scientific-core.md)
+
+* Es un documento Markdown donde están redactados los **5 pilares técnicos de tu taller** (banda + strop a 15º, estructura martensítica, eliminación de rebaba, exclusiones de sierra/cerámica y tus dos modalidades).
+* Sus bloques tienen **prioridad triple (`3.0`)** sobre los 733 bloques del libro de 822 páginas.
+* **Si modificas este archivo `.md`**, ejecuta después en la terminal:
+  ```powershell
+  node scripts/build-knowledge.mjs
+  ```
+  Eso regenera en 2 segundos el índice [knowledge/rag-index.json](file:///c:/Users/emili/Documents/MADKUSIN/vecindario/knowledge/rag-index.json) combinando tu doctrina actualizada con el libro técnico.
+
+---
+
+### 4. El Buscador RAG y Diccionario Bilingüe (ES/EN)
+📄 **Archivo:** [server/ragEngine.js](file:///c:/Users/emili/Documents/MADKUSIN/vecindario/server/ragEngine.js)
+
+* **[`BILINGUAL_SYNONYMS` (líneas 42–65)](file:///c:/Users/emili/Documents/MADKUSIN/vecindario/server/ragEngine.js#L42-L65):** Contiene las equivalencias técnicas español-inglés y el algoritmo que selecciona los 5 fragmentos más relevantes en cada pregunta.
+
+---
+
+### ¿Cómo subes tus cambios al servidor cuando modifiques algo?
+
+Tienes **dos formas**:
+1. **Modificando los archivos en tu PC:** Guardas el archivo y ejecutas [deploy.ps1](file:///c:/Users/emili/Documents/MADKUSIN/vecindario/deploy.ps1):
+   ```powershell
+   .\deploy.ps1 "Ajuste en el cerebro de Kusin"
+   ```
+   *(Sube los cambios a GitHub y recompila el contenedor en DigitalOcean automáticamente).*
+2. **En caliente desde Telegram (sin tocar código):** Escribiendo `/aprender <nueva regla o criterio técnico>` o enviando un PDF/TXT a tu bot privado **`@madkusin_adminbot`**, lo cual lo graba al instante en el servidor.

@@ -456,20 +456,24 @@ export class ElevenLabsVoiceProvider extends IVoiceProvider {
  * ============================================================================
  */
 export class HybridLocalVoiceProvider extends IVoiceProvider {
-  constructor(callbacks) {
+  constructor(callbacks, initialMode = 'text') {
     super(callbacks);
     this.recognition = null;
     this.synth = typeof window !== 'undefined' ? window.speechSynthesis : null;
-    this.isMuted = false;
+    this.interactionMode = initialMode; // 'text' | 'voice'
+    this.isMuted = initialMode === 'text';
     this.isConnected = false;
+    this.isBusySpeakingOrThinking = false;
+    this.currentAudio = null;
     this.waveTimer = null;
+    this.history = [];
 
-    // Estado conversacional paso a paso según la Regla 5 del System Prompt
+    // Estado conversacional de respaldo por si se ejecuta sin backend
     const nextBusinessDays = getUpcomingBusinessDays(5);
     this.defaultDate = nextBusinessDays[0]?.isoDate || '2026-10-20';
 
     this.draft = {
-      step: 'awaiting_intent', // awaiting_intent -> cp -> modalidad -> enchufe -> cuchillos -> fecha_hora -> datos -> completed
+      step: 'awaiting_intent',
       codigo_postal: '',
       modalidad: '',
       tiene_enchufe_15m: false,
@@ -490,8 +494,28 @@ export class HybridLocalVoiceProvider extends IVoiceProvider {
     this.startWaveformSimulation();
     this.setupSpeechRecognition();
 
-    // Saludo inicial estricto según Regla 1
     await this.speakAndTranscribe(INITIAL_GREETING);
+  }
+
+  setInteractionMode(mode) {
+    this.interactionMode = mode === 'voice' ? 'voice' : 'text';
+    if (this.interactionMode === 'text') {
+      this.setMuted(true);
+      if (this.currentAudio) {
+        try {
+          this.currentAudio.pause();
+        } catch {}
+        this.currentAudio = null;
+      }
+      if (this.synth) {
+        try {
+          this.synth.cancel();
+        } catch {}
+      }
+      this.callbacks.onStateChange?.('listening');
+    } else {
+      this.setMuted(false);
+    }
   }
 
   startWaveformSimulation() {
@@ -504,6 +528,29 @@ export class HybridLocalVoiceProvider extends IVoiceProvider {
       const level = 0.15 + Math.random() * 0.55;
       this.callbacks.onAudioLevel?.(level);
     }, 140);
+  }
+
+  stopRecognitionSafely() {
+    if (this.recognition) {
+      try {
+        this.recognition.abort();
+      } catch {}
+    }
+  }
+
+  startRecognitionSafely() {
+    if (
+      !this.isConnected ||
+      this.interactionMode !== 'voice' ||
+      this.isMuted ||
+      this.isBusySpeakingOrThinking ||
+      !this.recognition
+    ) {
+      return;
+    }
+    try {
+      this.recognition.start();
+    } catch {}
   }
 
   setupSpeechRecognition() {
@@ -522,57 +569,110 @@ export class HybridLocalVoiceProvider extends IVoiceProvider {
       this.recognition.interimResults = false;
 
       this.recognition.onresult = async (event) => {
-        const transcript = event.results?.[0]?.[0]?.transcript;
-        if (transcript && !this.isMuted) {
+        if (this.isBusySpeakingOrThinking || this.isMuted || this.interactionMode !== 'voice') {
+          return;
+        }
+        const transcript = (event.results?.[0]?.[0]?.transcript || '').trim();
+        if (transcript.length >= 3) {
           await this.sendUserText(transcript);
         }
       };
 
+      // Cuando no recibe respuesta del usuario tras unos segundos de silencio, NO entra en bucle:
+      // detiene la escucha activa limpiamente hasta que el usuario pulse el micro o hable en el siguiente turno.
       this.recognition.onend = () => {
-        if (this.isConnected && !this.isMuted && !this.synth?.speaking) {
-          try {
-            this.recognition.start();
-          } catch {}
+        if (!this.isBusySpeakingOrThinking && this.interactionMode === 'voice' && !this.isMuted) {
+          this.isMuted = true;
+          this.callbacks.onMuteChange?.(true);
+          this.callbacks.onStateChange?.('listening');
         }
       };
     } catch {
-      // Si el navegador bloquea SpeechRecognition, el usuario puede usar los botones rápidos o el campo de texto
+      // Si el navegador bloquea SpeechRecognition, el usuario puede usar el campo de texto
     }
   }
 
-  async speakAndTranscribe(text) {
+  async speakAndTranscribe(text, ragSources = []) {
     if (!this.isConnected) return;
 
-    this.callbacks.onStateChange?.('speaking');
+    this.isBusySpeakingOrThinking = true;
+    this.stopRecognitionSafely();
+
+    this.history.push({ role: 'assistant', text });
     this.callbacks.onTranscript?.({
       role: 'assistant',
       text,
+      ragSources,
       timestamp: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
     });
 
-    if (this.synth) {
+    if (this.interactionMode === 'voice') {
+      this.callbacks.onStateChange?.('speaking');
+      let playedNeural = false;
+
+      // 1. Voz Neuronal Humana Real desde el servidor (/api/agent/tts -> Gemini TTS WAV)
       try {
-        this.synth.cancel();
-        await new Promise((resolve) => {
-          const utterance = new SpeechSynthesisUtterance(text);
-          utterance.lang = 'es-ES';
-          utterance.rate = 1.03;
-          utterance.onend = () => resolve();
-          utterance.onerror = () => resolve();
-          this.synth.speak(utterance);
+        const ttsRes = await fetch('/api/agent/tts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text })
         });
-      } catch {}
-    } else {
-      await new Promise((r) => setTimeout(r, 900));
+        if (ttsRes.ok) {
+          const ttsData = await ttsRes.json();
+          if (ttsData.ok && ttsData.audioBase64) {
+            playedNeural = true;
+            await new Promise((resolve) => {
+              const audio = new Audio(`data:${ttsData.mimeType || 'audio/wav'};base64,${ttsData.audioBase64}`);
+              this.currentAudio = audio;
+              audio.onended = () => {
+                this.currentAudio = null;
+                resolve();
+              };
+              audio.onerror = () => {
+                this.currentAudio = null;
+                resolve();
+              };
+              audio.play().catch(() => {
+                this.currentAudio = null;
+                playedNeural = false;
+                resolve();
+              });
+            });
+          }
+        }
+      } catch {
+        playedNeural = false;
+      }
+
+      // 2. Fallback a voz del navegador si falla la red
+      if (!playedNeural && this.synth) {
+        try {
+          this.synth.cancel();
+          await new Promise((resolve) => {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'es-ES';
+            const voices = this.synth.getVoices?.() || [];
+            const naturalVoice =
+              voices.find((v) => v.lang.startsWith('es') && (v.name.includes('Natural') || v.name.includes('Online') || v.name.includes('Google'))) ||
+              voices.find((v) => v.lang.startsWith('es-ES'));
+            if (naturalVoice) utterance.voice = naturalVoice;
+            utterance.rate = 1.02;
+            utterance.onend = () => resolve();
+            utterance.onerror = () => resolve();
+            this.synth.speak(utterance);
+          });
+        } catch {}
+      }
+
+      // Pausa de 450ms tras terminar el audio para evitar que el micro capte el eco de los altavoces
+      await new Promise((r) => setTimeout(r, 450));
     }
+
+    this.isBusySpeakingOrThinking = false;
 
     if (this.isConnected) {
       this.callbacks.onStateChange?.('listening');
-      if (this.recognition && !this.isMuted) {
-        try {
-          this.recognition.start();
-        } catch {}
-      }
+      this.startRecognitionSafely();
     }
   }
 
@@ -580,12 +680,16 @@ export class HybridLocalVoiceProvider extends IVoiceProvider {
     if (!userText?.trim() || !this.isConnected) return;
     const cleanText = userText.trim();
 
-    if (this.recognition) {
+    this.isBusySpeakingOrThinking = true;
+    this.stopRecognitionSafely();
+    if (this.currentAudio) {
       try {
-        this.recognition.stop();
+        this.currentAudio.pause();
       } catch {}
+      this.currentAudio = null;
     }
 
+    this.history.push({ role: 'user', text: cleanText });
     this.callbacks.onTranscript?.({
       role: 'user',
       text: cleanText,
@@ -593,321 +697,69 @@ export class HybridLocalVoiceProvider extends IVoiceProvider {
     });
 
     this.callbacks.onStateChange?.('thinking');
-    await new Promise((r) => setTimeout(r, 450));
 
-    const lower = cleanText.toLowerCase();
+    // Consultar el Cerebro RAG + Gemini Zero-Trust en el servidor (/api/agent/chat)
+    try {
+      const apiRes = await fetch('/api/agent/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: cleanText,
+          history: this.history.slice(-10)
+        })
+      });
 
-    // Consultas transversales: precios / tarifas (Regla 4)
-    if (
-      lower.includes('precio') ||
-      lower.includes('tarifa') ||
-      lower.includes('cuánto cuesta') ||
-      lower.includes('cuanto cuesta') ||
-      lower.includes('cobráis')
-    ) {
-      await this.speakAndTranscribe(
-        'Primero Emil afila totalmente gratis tu peor cuchillo de acero de filo liso, sin ningún compromiso. Si eliges el afilado in situ en tu domicilio, si te gusta el resultado, Emil te indicará la tarifa de viva voz para el resto de cuchillos en el momento. Y si prefieres recogida y entrega en 24 o 48 horas, al entregártelos pruebas primero tu peor cuchillo: si no te convence, no hay ningún compromiso. ¿Vives en el código postal 28224?'
-      );
-      if (this.draft.step === 'awaiting_intent') {
-        this.draft.step = 'cp';
-      }
-      return;
-    }
-
-    // Consultas transversales: sierra, cerámica, tijeras (Regla 3)
-    if (
-      lower.includes('sierra') ||
-      lower.includes('panero') ||
-      lower.includes('cerámica') ||
-      lower.includes('ceramica') ||
-      lower.includes('tijera') ||
-      lower.includes('hacha')
-    ) {
-      await this.speakAndTranscribe(
-        'Te aclaro un detalle importante: en el taller de Emil realizamos un afilado profesional de alta precisión con afilador de banda y strop, absolutamente respetuoso con el temple del acero y diseñado para no sobrecalentar nunca la hoja. Por eso solo afilamos cuchillos de acero de filo liso: quedan excluidos cuchillos de sierra, cerámicos, tijeras, hachas o sierras. ¿Tienes cuchillos de acero de filo liso y vives en el 28224?'
-      );
-      if (this.draft.step === 'awaiting_intent') {
-        this.draft.step = 'cp';
-      }
-      return;
-    }
-
-    // Flujo guiado de reserva paso a paso (Regla 5)
-    switch (this.draft.step) {
-      case 'awaiting_intent': {
-        if (lower.includes('28224')) {
-          this.draft.codigo_postal = '28224';
-          this.draft.step = 'modalidad';
-          await this.speakAndTranscribe(
-            '¡Estupendo, vecino del 28224! Emil realiza un afilado profesional de alta precisión con afilador de banda y strop, respetuoso con el temple del acero y diseñado para no sobrecalentar nunca la hoja, exclusivamente para cuchillos de acero de filo liso. ¿Qué modalidad prefieres: afilado in situ en tu domicilio o recogida y entrega en 24/48 horas?'
-          );
-          return;
-        }
-        this.draft.step = 'cp';
-        await this.speakAndTranscribe(
-          '¡Genial! Emil realiza un afilado profesional de alta precisión con afilador de banda y strop, absolutamente respetuoso con el temple del acero y diseñado para no sobrecalentar nunca la hoja, solo para cuchillos de acero de filo liso. Para empezar, ¿me confirmas que tu domicilio está en el código postal 28224 de Pozuelo?'
-        );
-        return;
-      }
-
-      case 'cp': {
-        const cpMatch = cleanText.match(/\b\d{5}\b/);
-        if (cpMatch && cpMatch[0] !== '28224') {
-          const check = validatePostalCode(cpMatch[0]);
-          await this.speakAndTranscribe(check.message);
-          return;
-        }
-
-        if (
-          lower.includes('28224') ||
-          lower.includes('sí') ||
-          lower.includes('si') ||
-          lower.includes('pozuelo') ||
-          lower.includes('claro')
-        ) {
-          this.draft.codigo_postal = '28224';
-          this.draft.step = 'modalidad';
-          await this.speakAndTranscribe(
-            'Perfecto, código postal 28224 confirmado. ¿Qué modalidad prefieres: 1) Afilado in situ en tu domicilio, o 2) Recogida y entrega en 24/48 horas?'
-          );
-          return;
-        }
-
-        await this.speakAndTranscribe(
-          'Disculpa, este servicio vecinal de Emil es exclusivo para el código postal 28224 de Pozuelo de Alarcón. ¿Me confirmas que vives en el 28224?'
-        );
-        return;
-      }
-
-      case 'modalidad': {
-        if (
-          lower.includes('recogida') ||
-          lower.includes('24') ||
-          lower.includes('48') ||
-          lower.includes('taller') ||
-          lower.includes('opción 2') ||
-          lower.includes('opcion 2')
-        ) {
-          this.draft.modalidad = 'recogida';
-          this.draft.tiene_enchufe_15m = false;
-          this.draft.step = 'cuchillos';
-          await this.speakAndTranscribe(
-            'Anotado: recogida y entrega en 24/48 horas (recuerda que se afila gratis tu peor cuchillo en el taller y, al entregártelo, lo pruebas primero sin ningún compromiso). ¿Cuántos cuchillos de acero de filo liso quieres afilar aproximadamente?'
-          );
-          return;
-        }
-
-        if (
-          lower.includes('situ') ||
-          lower.includes('casa') ||
-          lower.includes('domicilio') ||
-          lower.includes('allí') ||
-          lower.includes('opción 1') ||
-          lower.includes('opcion 1')
-        ) {
-          this.draft.modalidad = 'in_situ';
-          this.draft.step = 'enchufe';
-          await this.speakAndTranscribe(
-            'Perfecto, afilado in situ en tu domicilio. Para conectar el afilador de banda profesional, Emil necesita una toma de corriente cercana (él lleva una alargadera profesional de 15 metros). ¿Confirmas que dispones de un enchufe a menos de 15 metros?'
-          );
-          return;
-        }
-
-        await this.speakAndTranscribe(
-          'Por favor, dime si prefieres "afilado in situ en tu domicilio" o "recogida y entrega en 24/48 horas".'
-        );
-        return;
-      }
-
-      case 'enchufe': {
-        if (
-          lower.includes('sí') ||
-          lower.includes('si') ||
-          lower.includes('tengo') ||
-          lower.includes('claro') ||
-          lower.includes('enchufe')
-        ) {
-          this.draft.tiene_enchufe_15m = true;
-          this.draft.step = 'cuchillos';
-          await this.speakAndTranscribe(
-            'Estupendo, contamos con toma de corriente a menos de 15 metros. ¿Cuántos cuchillos de acero de filo liso tienes pensado afilar aproximadamente? Recuerda que Emil afila gratis tu peor cuchillo.'
-          );
-          return;
-        }
-
-        if (lower.includes('no')) {
-          this.draft.modalidad = 'recogida';
-          this.draft.tiene_enchufe_15m = false;
-          this.draft.step = 'cuchillos';
-          await this.speakAndTranscribe(
-            'Sin problema: como no hay toma de corriente a menos de 15 metros, pasamos a la modalidad de Recogida y Entrega en 24/48 horas. ¿Cuántos cuchillos de acero de filo liso quieres incluir aproximadamente?'
-          );
-          return;
-        }
-
-        await this.speakAndTranscribe(
-          '¿Me confirmas si tienes una toma de corriente a menos de 15 metros, o prefieres que cambiemos a recogida y entrega en 24/48h?'
-        );
-        return;
-      }
-
-      case 'cuchillos': {
-        const numMatch = cleanText.match(/\d+/);
-        let count = numMatch ? Number.parseInt(numMatch[0], 10) : 0;
-        if (!count) {
-          const wordMap = {
-            un: 1,
-            uno: 1,
-            dos: 2,
-            tres: 3,
-            cuatro: 4,
-            cinco: 5,
-            seis: 6,
-            siete: 7,
-            ocho: 8,
-            diez: 10
-          };
-          for (const [word, val] of Object.entries(wordMap)) {
-            if (lower.includes(word)) {
-              count = val;
-              break;
+      if (apiRes.ok) {
+        const data = await apiRes.json();
+        if (data.ok && data.reply) {
+          if (Array.isArray(data.toolEvents)) {
+            for (const evt of data.toolEvents) {
+              this.callbacks.onToolEvent?.(evt);
             }
           }
-        }
-        this.draft.num_cuchillos = Math.max(1, count || 4);
-
-        // Ejecutar la herramienta real check_availability (Regla 6)
-        const availResult = await checkAvailability({
-          fecha: this.draft.fecha,
-          modalidad: this.draft.modalidad,
-          num_cuchillos: this.draft.num_cuchillos
-        });
-
-        this.draft.availableSlots = availResult.slots || [];
-        this.callbacks.onToolEvent?.({
-          tool: 'check_availability',
-          summary: `check_availability(${this.draft.fecha}, ${this.draft.modalidad}, ${this.draft.num_cuchillos}) → ${availResult.duracion_minutos} min`
-        });
-
-        const slotTimes = this.draft.availableSlots.map((s) => s.time).join(', ');
-        this.draft.step = 'fecha_hora';
-
-        await this.speakAndTranscribe(
-          `Perfecto, ${this.draft.num_cuchillos} cuchillos de filo liso (la visita durará unos ${availResult.duracion_minutos} minutos). He consultado la agenda de Emil para el próximo día laborable (${this.draft.fecha}) y tengo libres las: ${slotTimes}. ¿Qué hora entre las 10:00 y las 13:00 te viene mejor?`
-        );
-        return;
-      }
-
-      case 'fecha_hora': {
-        // Detectar hora como "10:00", "10:30", "11", "11 y media", "12"
-        let chosenHour = '';
-        const explicitTime = cleanText.match(/\b(10|11|12):(00|30)\b/);
-        if (explicitTime) {
-          chosenHour = explicitTime[0];
-        } else if (lower.includes('diez y media') || lower.includes('10 y media')) {
-          chosenHour = '10:30';
-        } else if (lower.includes('once y media') || lower.includes('11 y media')) {
-          chosenHour = '11:30';
-        } else if (lower.includes('doce y media') || lower.includes('12 y media')) {
-          chosenHour = '12:30';
-        } else if (lower.includes('10') || lower.includes('diez')) {
-          chosenHour = '10:00';
-        } else if (lower.includes('11') || lower.includes('once')) {
-          chosenHour = '11:00';
-        } else if (lower.includes('12') || lower.includes('doce')) {
-          chosenHour = '12:00';
-        } else if (this.draft.availableSlots.length > 0) {
-          chosenHour = this.draft.availableSlots[0].time;
-        } else {
-          chosenHour = '10:30';
-        }
-
-        this.draft.hora = chosenHour;
-        this.draft.step = 'datos';
-        await this.speakAndTranscribe(
-          `¡Reservamos el hueco de las ${chosenHour} para el ${this.draft.fecha}! Por último, dime tu nombre, tu dirección completa en el 28224 y tu correo electrónico (recuerda que nunca pedimos número de teléfono).`
-        );
-        return;
-      }
-
-      case 'datos': {
-        const emailMatch = cleanText.match(/[^\s@]+@[^\s@]+\.[^\s@]+/);
-        const extractedEmail = emailMatch ? emailMatch[0] : 'vecino@madkusin.com';
-
-        // Extraer nombre y dirección de forma flexible
-        this.draft.email = extractedEmail;
-        this.draft.nombre = cleanText.split(',')[0]?.replace(extractedEmail, '').trim() || 'Vecino del 28224';
-        this.draft.direccion = cleanText;
-
-        // Ejecutar la herramienta book_appointment (Regla 6)
-        const bookingRes = await bookAppointment({
-          nombre: this.draft.nombre,
-          email: this.draft.email,
-          direccion: this.draft.direccion,
-          codigo_postal: '28224',
-          modalidad: this.draft.modalidad || 'in_situ',
-          num_cuchillos: this.draft.num_cuchillos || 1,
-          tiene_enchufe_15m: this.draft.modalidad === 'in_situ' ? true : false,
-          confirma_filo_liso: true,
-          fecha: this.draft.fecha,
-          hora: this.draft.hora || '10:30',
-          notas: 'Reserva realizada desde el Asistente de Voz de Kusin',
-          origen: 'voice_assistant_hybrid'
-        });
-
-        this.callbacks.onToolEvent?.({
-          tool: 'book_appointment',
-          summary: `book_appointment completado → Cita #${bookingRes.cita_id}`
-        });
-
-        if (bookingRes.ok && bookingRes.appointment) {
-          this.draft.step = 'completed';
-          this.callbacks.onAppointmentBooked?.(bookingRes.appointment);
-          await this.speakAndTranscribe(
-            `¡Listo! Tu cita con Emil para el ${this.draft.fecha} a las ${this.draft.hora} ha quedado registrada y hemos enviado la confirmación a ${this.draft.email}. En la pantalla de tu navegador acaba de aparecer el resumen de tu cita junto con un botón para recibir un recordatorio en nuestro Bot de Telegram sin compartir tu teléfono.`
-          );
+          if (data.appointment) {
+            this.callbacks.onAppointmentBooked?.(data.appointment);
+          }
+          await this.speakAndTranscribe(data.reply, data.ragSources || []);
           return;
         }
-
-        await this.speakAndTranscribe(
-          bookingRes.error ||
-            'Necesito que me confirmes tu nombre, dirección en el 28224 y un correo electrónico válido.'
-        );
-        return;
       }
+    } catch (err) {
+      this.callbacks.onError?.(
+        `No se pudo conectar con el servidor de Kusin: ${err.message || 'error de red'}`
+      );
+    }
 
-      default: {
-        await this.speakAndTranscribe(
-          'Tu cita ya está confirmada en pantalla. Si necesitas cualquier otra aclaración sobre el afilado de precisión con afilador de banda y strop del taller de Emil, aquí estoy.'
-        );
-      }
+    this.isBusySpeakingOrThinking = false;
+    if (this.isConnected) {
+      this.callbacks.onStateChange?.('listening');
     }
   }
 
   setMuted(muted) {
     this.isMuted = Boolean(muted);
-    if (this.isMuted && this.recognition) {
-      try {
-        this.recognition.stop();
-      } catch {}
-    } else if (!this.isMuted && this.recognition && this.isConnected) {
-      try {
-        this.recognition.start();
-      } catch {}
+    this.callbacks.onMuteChange?.(this.isMuted);
+    if (this.isMuted) {
+      this.stopRecognitionSafely();
+    } else if (!this.isBusySpeakingOrThinking && this.isConnected) {
+      this.startRecognitionSafely();
     }
   }
 
   async disconnect() {
     this.isConnected = false;
+    this.isBusySpeakingOrThinking = false;
     if (this.waveTimer) {
       clearInterval(this.waveTimer);
       this.waveTimer = null;
     }
-    if (this.recognition) {
+    this.stopRecognitionSafely();
+    this.recognition = null;
+    if (this.currentAudio) {
       try {
-        this.recognition.stop();
+        this.currentAudio.pause();
       } catch {}
-      this.recognition = null;
+      this.currentAudio = null;
     }
     if (this.synth) {
       try {
@@ -929,63 +781,22 @@ export class VoiceAgentService {
   constructor(callbacks = {}) {
     this.callbacks = callbacks;
     this.providerInstance = null;
-    this.activeProviderName = 'hybrid';
+    this.activeProviderName = 'rag_agent';
   }
 
-  async startSession(preferredProvider = null) {
+  async startSession(initialMode = 'text') {
     await this.stopSession();
 
-    const targetProvider =
-      preferredProvider || import.meta.env.VITE_VOICE_PROVIDER || 'gemini';
-
-    try {
-      const response = await fetch(
-        `/api/voice-config?provider=${encodeURIComponent(targetProvider)}`,
-        {
-          method: 'GET',
-          headers: { Accept: 'application/json' }
-        }
-      );
-
-      if (response.ok) {
-        const config = await response.json();
-
-        if (config.provider === 'gemini' && config.mode === 'live' && config.wsEndpoint) {
-          this.activeProviderName = 'gemini';
-          const fallbackToHybrid = async () => {
-            if (this.activeProviderName === 'hybrid') return;
-            this.activeProviderName = 'hybrid';
-            if (this.providerInstance) {
-              await this.providerInstance.disconnect();
-            }
-            this.providerInstance = new HybridLocalVoiceProvider(this.callbacks);
-            await this.providerInstance.connect();
-          };
-          this.providerInstance = new GeminiLiveVoiceProvider(config, {
-            ...this.callbacks,
-            onError: () => {
-              fallbackToHybrid();
-            }
-          });
-          await this.providerInstance.connect();
-          return { provider: 'gemini', mode: 'live' };
-        }
-
-        if (config.provider === 'elevenlabs' && config.mode === 'live' && config.signedUrl) {
-          this.activeProviderName = 'elevenlabs';
-          this.providerInstance = new ElevenLabsVoiceProvider(config, this.callbacks);
-          await this.providerInstance.connect();
-          return { provider: 'elevenlabs', mode: 'live' };
-        }
-      }
-    } catch {
-      // En local con `npm run dev` (sin wrangler) o si aún no hay API key, activamos el proveedor híbrido
-    }
-
-    this.activeProviderName = 'hybrid';
-    this.providerInstance = new HybridLocalVoiceProvider(this.callbacks);
+    this.activeProviderName = 'rag_agent';
+    this.providerInstance = new HybridLocalVoiceProvider(this.callbacks, initialMode);
     await this.providerInstance.connect();
-    return { provider: 'hybrid', mode: 'hybrid_fallback' };
+    return { provider: 'rag_agent', mode: initialMode };
+  }
+
+  setInteractionMode(mode) {
+    if (this.providerInstance && typeof this.providerInstance.setInteractionMode === 'function') {
+      this.providerInstance.setInteractionMode(mode);
+    }
   }
 
   async sendText(text) {

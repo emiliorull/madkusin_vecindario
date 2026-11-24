@@ -24,7 +24,7 @@ export default function Header({ onOpenVoiceAssistant, confirmedAppointment }) {
               </span>
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-stone-200/90 text-stone-900 border border-stone-300">
                 <MapPin className="w-3 h-3 text-kusin-terra" />
-                Pozuelo de Alarcón
+                Pozuelo de Alarcón y alrededores
               </span>
             </div>
             <p className="text-xs text-stone-700 font-medium hidden sm:block">

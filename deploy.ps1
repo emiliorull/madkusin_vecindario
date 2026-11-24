@@ -5,7 +5,7 @@
 # ============================================================================
 
 param(
-    [string]$CommitMessage = "Actualizar web vecindario.madkusin.com"
+    [string]$CommitMessage = "Actualizar web y Agente IA Kusin en vecindario.madkusin.com"
 )
 
 $ErrorActionPreference = "Stop"
@@ -25,9 +25,11 @@ if (Get-Command git -ErrorAction SilentlyContinue) {
 }
 
 Write-Host "2. Subiendo archivos actualizados al Droplet (167.99.45.111)..." -ForegroundColor Cyan
-scp -4 -r -o BatchMode=yes -i $SshKey "$ProjectDir\src" "$ProjectDir\public" "$ProjectDir\functions" "$ProjectDir\index.html" "$ProjectDir\package.json" "$ProjectDir\vite.config.js" "$ProjectDir\tailwind.config.js" "$ProjectDir\postcss.config.js" "$ProjectDir\Dockerfile" "$ProjectDir\server.js" "${DropletHost}:/opt/n8n/vecindario/"
+ssh -4 -n -o BatchMode=yes -i $SshKey $DropletHost "mkdir -p /opt/n8n/vecindario/knowledge /opt/n8n/vecindario/server"
+scp -4 -r -o BatchMode=yes -i $SshKey "$ProjectDir\src" "$ProjectDir\public" "$ProjectDir\functions" "$ProjectDir\server" "$ProjectDir\index.html" "$ProjectDir\package.json" "$ProjectDir\vite.config.js" "$ProjectDir\tailwind.config.js" "$ProjectDir\postcss.config.js" "$ProjectDir\Dockerfile" "$ProjectDir\.dockerignore" "$ProjectDir\server.js" "${DropletHost}:/opt/n8n/vecindario/"
+scp -4 -o BatchMode=yes -i $SshKey "$ProjectDir\knowledge\emil-scientific-core.md" "$ProjectDir\knowledge\rag-index.json" "${DropletHost}:/opt/n8n/vecindario/knowledge/"
 
 Write-Host "3. Recompilando y reiniciando contenedor vecindario en DigitalOcean..." -ForegroundColor Cyan
 ssh -4 -n -o BatchMode=yes -i $SshKey $DropletHost "cd /opt/n8n && docker compose up -d --build vecindario"
 
-Write-Host "¡Despliegue completado! Web actualizada en https://vecindario.madkusin.com" -ForegroundColor Green
+Write-Host "¡Despliegue completado! Web y Agente IA Kusin actualizados en https://vecindario.madkusin.com" -ForegroundColor Green

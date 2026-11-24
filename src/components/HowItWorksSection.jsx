@@ -17,7 +17,7 @@ export default function HowItWorksSection({ onSelectModalidad }) {
         {/* Encabezado de Sección */}
         <div className="max-w-3xl mx-auto text-center space-y-3">
           <span className="inline-block px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-stone-200 text-stone-900 border border-stone-300">
-            Exclusivo para Pozuelo de Alarcón
+            Servicio en Pozuelo de Alarcón y alrededores
           </span>
           <h2 className="font-serif text-3xl sm:text-4xl font-bold text-stone-900">
             Dos modalidades de servicio de afilado
@@ -128,7 +128,7 @@ export default function HowItWorksSection({ onSelectModalidad }) {
               <p className="text-stone-800 leading-relaxed">
                 <strong>Recojo tus cuchillos a domicilio</strong>, y afilo gratis el peor en el
                 taller. Se devuelven en mano listos en un plazo máximo de{' '}
-                <strong>24/48 horas</strong> en el lugar de recogida o donde se prefiera dentro de Pozuelo de Alarcón.
+                <strong>24/48 horas</strong> en el lugar de recogida o donde se prefiera dentro de Pozuelo de Alarcón y alrededores.
               </p>
 
               {/* Garantía Destacada */}
@@ -161,7 +161,7 @@ export default function HowItWorksSection({ onSelectModalidad }) {
                 <li className="flex items-start gap-3">
                   <CheckCircle2 className="w-5 h-5 text-kusin-sage shrink-0 mt-0.5" />
                   <span>
-                    <strong>3. Entrega en 24/48h:</strong> Te entrego en mano los cuchillos afilados en la dirección de entrega o donde prefieras (siempre dentro de Pozuelo de Alarcón).
+                    <strong>3. Entrega en 24/48h:</strong> Te entrego en mano los cuchillos afilados en la dirección de entrega o donde prefieras (siempre dentro de Pozuelo de Alarcón y alrededores).
                   </span>
                 </li>
               </ul>

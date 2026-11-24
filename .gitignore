@@ -30,3 +30,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Archivos brutos pesados de documentación (PDF/EPUB de >10MB antes de extraer texto)
+knowledge/raw/
+
